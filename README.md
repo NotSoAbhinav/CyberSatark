@@ -4,7 +4,7 @@ The platform allows users to explore real-world phishing scenarios, analyze susp
 
 Key Features
 
-Real vs fake email and message examples
+"""Real vs fake email and message examples"""
 
 Phishing identification checklist
 
