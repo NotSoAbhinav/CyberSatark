@@ -2,14 +2,49 @@
 import Link from "next/link";
 import { useState } from "react";
 import MatrixBackground from "@/components/MatrixBackground";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
+import { getUserRole } from "@/lib/db";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [msg, setMsg] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setMsg("");
+
+    try {
+      if (mode === "signup") {
+        await createUserWithEmailAndPassword(auth, email, password);
+        setMsg("Account created. You can login.");
+        setMode("login");
+        return;
+      }
+
+      // LOGIN
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+
+      // check role
+      const role = await getUserRole(cred.user.uid);
+
+      if (role === "admin") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
+
+    } catch (err: any) {
+      setMsg(err.message);
+    }
+  };
 
   return (
     <main className="min-h-screen flex items-center justify-center px-6">
-      
-      {/* MATRIX BACKGROUND */}
       <MatrixBackground />
 
       <div className="w-full max-w-md bg-[#07142a]/80 backdrop-blur-md border border-[#12345c] rounded-2xl shadow-xl p-8">
@@ -24,25 +59,30 @@ export default function AuthPage() {
             : "Join CyberSatark to start learning cybersecurity"}
         </p>
 
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+
           {mode === "signup" && (
             <input
               type="text"
               placeholder="Username"
-              className="w-full px-4 py-3 rounded-lg bg-[#020617] border border-[#12345c] focus:border-green-400 outline-none"
+              className="w-full px-4 py-3 rounded-lg bg-[#020617] border border-[#12345c]"
             />
           )}
 
           <input
-            type="text"
-            placeholder="Email or Username"
-            className="w-full px-4 py-3 rounded-lg bg-[#020617] border border-[#12345c] focus:border-green-400 outline-none"
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg bg-[#020617] border border-[#12345c]"
           />
 
           <input
             type="password"
             placeholder="Password"
-            className="w-full px-4 py-3 rounded-lg bg-[#020617] border border-[#12345c] focus:border-green-400 outline-none"
+            value={password}
+            onChange={(e)=>setPassword(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg bg-[#020617] border border-[#12345c]"
           />
 
           <button
@@ -53,14 +93,27 @@ export default function AuthPage() {
           </button>
         </form>
 
+        {msg && (
+          <p className="text-sm text-green-300 mt-4 text-center">{msg}</p>
+        )}
+
         <div className="mt-6 text-sm text-gray-400 space-y-2 text-center">
+
           {mode === "login" && (
             <Link href="#" className="block hover:text-green-400">
               Forgot Password?
             </Link>
           )}
 
-          <Link href="#" className="block hover:text-green-400">
+          <Link
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setMode("login");
+              setEmail("admin@cybersatark.com");
+            }}
+            className="block hover:text-green-400"
+          >
             Admin Login
           </Link>
 
@@ -79,8 +132,8 @@ export default function AuthPage() {
               Already have an account? Login
             </button>
           )}
-        </div>
 
+        </div>
       </div>
     </main>
   );
