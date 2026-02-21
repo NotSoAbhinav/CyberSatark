@@ -43,6 +43,15 @@ export default function Navbar() {
           <Link href="/about" className="hover:text-green-400 transition">
             About
           </Link>
+           {/* Auth */}
+          <Link
+            href="/auth"
+            className="px-4 py-1.5 rounded-full 
+                       bg-green-500 text-black font-semibold 
+                       hover:bg-green-400 transition"
+          >
+            Sign In
+          </Link>
         </nav>
       </div>
     </div>
