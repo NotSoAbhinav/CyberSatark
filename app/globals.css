@@ -19,14 +19,3 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   transition: background 0.25s ease, color 0.25s ease;
 }
-/* Professional Text Glow Effect */
-.glow-hover {
-  transition: all 0.3s ease;
-}
-
-.glow-hover:hover {
-  color: #00ff99;
-  text-shadow:
-    0 0 6px rgba(0, 255, 153, 0.7),
-    0 0 14px rgba(0, 255, 153, 0.4);
-}
