@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Fake Bank Email",
+    "text": "Your account is suspended. Click link immediately to verify."
+  },
+  {
+    "title": "Legitimate Bank Email",
+    "text": "Your monthly statement is available in secure inbox."
+  },
+  {
+    "title": "Phishing SMS",
+    "text": "Your parcel is on hold. Pay ₹50 at bit.ly/delivery"
+  }
+]
