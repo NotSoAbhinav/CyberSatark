@@ -40,10 +40,6 @@ export default function Navbar() {
             )}
           </div>
 
-          <Link href="/learn" className="hover:text-green-400 transition">
-            Learn
-          </Link>
-
           <Link href="/about" className="hover:text-green-400 transition">
             About
           </Link>
