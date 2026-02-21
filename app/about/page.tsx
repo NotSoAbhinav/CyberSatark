@@ -2,13 +2,14 @@
 
 import Navbar from "@/components/Navbar";
 import { motion } from "framer-motion";
+import { Github, Linkedin } from "lucide-react";
 
 export default function AboutPage() {
   return (
     <>
       <Navbar />
 
-      {/* Background (Same as Home) */}
+      {/* Background */}
       <div className="fixed inset-0 -z-10 overflow-hidden bg-[#0a0f1a]">
         <div className="absolute w-[600px] h-[600px] bg-green-500/10 blur-3xl rounded-full top-[-200px] left-[-200px] animate-pulse"></div>
         <div className="absolute w-[500px] h-[500px] bg-blue-500/10 blur-3xl rounded-full bottom-[-150px] right-[-150px] animate-pulse"></div>
@@ -23,7 +24,6 @@ export default function AboutPage() {
         />
       </div>
 
-      {/* Professional Hover Effect */}
       <style jsx global>{`
         .highlight-hover {
           transition: all 0.3s ease;
@@ -84,67 +84,7 @@ export default function AboutPage() {
             </p>
           </div>
         </motion.section>
-
-        {/* FEATURES */}
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="grid md:grid-cols-3 gap-10"
-        >
-          {[
-            {
-              title: "Hybrid Detection",
-              desc: "Combining rule-based inspection with machine learning accuracy."
-            },
-            {
-              title: "Human Awareness",
-              desc: "Interactive phishing simulations for real-world readiness."
-            },
-            {
-              title: "Risk Intelligence",
-              desc: "Real-time scoring and behavioral threat analysis."
-            }
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="p-8 rounded-xl bg-black/40 border border-green-500/20 backdrop-blur-md hover:-translate-y-1 hover:shadow-green-400/30 hover:shadow-lg transition duration-300"
-            >
-              <h3 className="text-lg font-semibold text-green-300 highlight-hover cursor-pointer mb-3">
-                {item.title}
-              </h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                {item.desc}
-              </p>
-            </div>
-          ))}
-        </motion.section>
-
-        {/* TECH STACK */}
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center space-y-8"
-        >
-          <h2 className="text-3xl font-semibold text-green-400 highlight-hover cursor-pointer">
-            Tech Stack
-          </h2>
-
-          <div className="flex flex-wrap justify-center gap-6">
-            {["Next.js", "Tailwind CSS", "Framer Motion", "Machine Learning", "Flask API"]
-              .map((tech, index) => (
-                <span
-                  key={index}
-                  className="px-6 py-3 rounded-xl bg-green-500/10 border border-green-400/30 text-white text-sm font-medium hover:scale-110 hover:shadow-green-400/40 hover:shadow-md transition duration-300 highlight-hover cursor-pointer"
-                >
-                  {tech}
-                </span>
-              ))}
-          </div>
-        </motion.section>
+        
 
         {/* TEAM */}
         <motion.section
@@ -160,24 +100,59 @@ export default function AboutPage() {
 
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-10">
             {[
-              { name: "Abhinav Mishra", github: "NotSoAbhinav" },
-              { name: "Jaiyansh Dhaulakhandi", github: "Jaiyansh12" },
-              { name: "Ritambhar Advait", github: "RitambharAdvait" },
-              { name: "Piyush Kumar", github: "piyushkumar-git" }
+              {
+                name: "Abhinav Mishra",
+                github: "https://github.com/NotSoAbhinav",
+                linkedin: "https://www.linkedin.com/in/abhinav-mishra",
+              },
+              {
+                name: "Jaiyansh Dhaulakhandi",
+                github: "https://github.com/Jaiyansh12",
+                linkedin: "https://www.linkedin.com/in/jaiyansh-dhaulakhandi",
+              },
+              {
+                name: "Ritambhar Advait",
+                github: "https://github.com/RitambharAdvait",
+                linkedin: "https://www.linkedin.com/in/ritambhar-advait",
+              },
+              {
+                name: "Piyush Kumar",
+                github: "https://github.com/piyushkumar-git",
+                linkedin: "https://www.linkedin.com/in/piyush-kumar",
+              },
             ].map((member, index) => (
               <div
                 key={index}
                 className="flex flex-col items-center p-6 rounded-xl bg-black/40 border border-green-500/20 hover:-translate-y-1 hover:shadow-green-400/30 hover:shadow-lg transition duration-300"
               >
                 <img
-                  src={`https://github.com/${member.github}.png`}
+                  src={`https://github.com/${member.github.split("/").pop()}.png`}
                   alt={member.name}
                   className="w-20 h-20 rounded-full border-2 border-green-400 object-cover mb-4 hover:scale-110 transition duration-300"
                 />
 
-                <h3 className="text-white font-medium highlight-hover cursor-pointer">
+                <h3 className="text-white font-medium mb-3 highlight-hover cursor-pointer">
                   {member.name}
                 </h3>
+
+                {/* SOCIAL ICONS */}
+                <div className="flex gap-4">
+                  <a
+                    href={member.github}
+                    target="_blank"
+                    className="text-gray-400 hover:text-green-400 transition"
+                  >
+                    <Github size={20} />
+                  </a>
+
+                  <a
+                    href={member.linkedin}
+                    target="_blank"
+                    className="text-gray-400 hover:text-green-400 transition"
+                  >
+                    <Linkedin size={20} />
+                  </a>
+                </div>
               </div>
             ))}
           </div>
