@@ -103,22 +103,22 @@ export default function AboutPage() {
               {
                 name: "Abhinav Mishra",
                 github: "https://github.com/NotSoAbhinav",
-                linkedin: "https://www.linkedin.com/in/abhinav-mishra",
+                linkedin: "https://www.linkedin.com/in/notsoabhinav/",
               },
               {
                 name: "Jaiyansh Dhaulakhandi",
                 github: "https://github.com/Jaiyansh12",
-                linkedin: "https://www.linkedin.com/in/jaiyansh-dhaulakhandi",
+                linkedin: "https://www.linkedin.com/in/jaiyansh-dhaulakhandi-0ba80b37a/",
               },
               {
                 name: "Ritambhar Advait",
                 github: "https://github.com/RitambharAdvait",
-                linkedin: "https://www.linkedin.com/in/ritambhar-advait",
+                linkedin: "https://www.linkedin.com/in/ritambhar-advait-0b3b2137b/",
               },
               {
                 name: "Piyush Kumar",
                 github: "https://github.com/piyushkumar-git",
-                linkedin: "https://www.linkedin.com/in/piyush-kumar",
+                linkedin: "https://www.linkedin.com/in/piyush-kumar-4223ba231/",
               },
             ].map((member, index) => (
               <div
