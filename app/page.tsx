@@ -114,21 +114,35 @@ export default function Home() {
           </div>
 
           {/* SECOND CTA */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <Link
-              href="/learn"
-              className="px-10 py-4 rounded-xl border border-green-400 text-green-300 font-semibold 
-                         hover:bg-green-400/10 hover:shadow-green-400/40 hover:shadow-lg 
-                         transition"
-            >
-              Start Learning
-            </Link>
-          </motion.div>
-        </motion.div>
+          {/* ACTION BUTTONS */}
+          <div className="flex flex-col sm:flex-row gap-6">
 
+            {/* Start Learning */}
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+              <Link
+                href="/learn"
+                className="px-10 py-4 rounded-xl border border-green-400 text-green-300 font-semibold 
+                          hover:bg-green-400/10 hover:shadow-green-400/40 hover:shadow-lg 
+                          transition"
+              >
+                Start Learning
+              </Link>
+            </motion.div>
+
+            {/* Take Awareness Quiz */}
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+              <Link
+                href="/quiz"
+                className="px-10 py-4 rounded-xl border border-green-400 text-green-300 font-semibold 
+                          hover:bg-green-400/10 hover:shadow-green-400/40 hover:shadow-lg 
+                          transition"
+              >
+                Take Awareness Quiz
+              </Link>
+            </motion.div>
+
+          </div>
+          </motion.div>
       </main>
     </>
   );
