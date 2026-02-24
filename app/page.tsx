@@ -78,7 +78,7 @@ export default function Home() {
         >
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
             <Link
-              href="/tools/phishing"
+              href="/tools"
               className="px-10 py-4 rounded-xl bg-green-500 text-black font-semibold 
                          shadow-lg shadow-green-500/30 hover:shadow-green-400/60 
                          transition"
