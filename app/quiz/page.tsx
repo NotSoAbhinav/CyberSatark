@@ -4,12 +4,30 @@ import { useState } from "react";
 import { quizzes } from "@/data/quizzes";
 import { motion } from "framer-motion";
 
+type Question = {
+  question: string;
+  options: string[];
+  answer: number;
+};
+
+type Quiz = {
+  id: number;
+  title: string;
+  questions: Question[];
+};
+
+function getRandomQuestions(questions: Question[], count: number): Question[]  {
+  const shuffled = [...questions].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
 export default function QuizPage() {
 
 const [quizIndex, setQuizIndex] = useState<number | null>(null);
 const [questionIndex, setQuestionIndex] = useState(0);
 const [score, setScore] = useState(0);
 const [finished, setFinished] = useState(false);
+const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
 
 if (quizIndex === null) {
 return (
@@ -30,7 +48,10 @@ Cyber Awareness Quiz
         key={index}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.97 }}
-        onClick={() => setQuizIndex(index)}
+        onClick={() => {
+        setQuizIndex(index);
+        setSelectedQuestions(getRandomQuestions(quizzes[index].questions, 10));
+        }}
         className="
           bg-[#020617]/60
           border border-green-400/30
@@ -67,7 +88,10 @@ Cyber Awareness Quiz
     <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.97 }}
-      onClick={() => setQuizIndex(9)}
+      onClick={() => {
+      setQuizIndex(9);
+      setSelectedQuestions(getRandomQuestions(quizzes[9].questions, 10));
+      }}
       className="
         bg-[#020617]/60
         border border-green-400/30
@@ -105,7 +129,7 @@ Cyber Awareness Quiz
 }
 
 const quiz = quizzes[quizIndex];
-const question = quiz.questions[questionIndex];
+const question = selectedQuestions[questionIndex];
 
 function handleAnswer(index: number) {
 
@@ -113,7 +137,7 @@ if (index === question.answer) {
 setScore(score + 1);
 }
 
-if (questionIndex + 1 < quiz.questions.length) {
+if (questionIndex + 1 < selectedQuestions.length) {
 setQuestionIndex(questionIndex + 1);
 }
 else {
@@ -174,7 +198,7 @@ return (
 <div
 className="bg-green-400 h-2 rounded"
 style={{
-width: `${(questionIndex / 10) * 100}%`
+width: `${((questionIndex + 1) / selectedQuestions.length) * 100}%`
 }}
 />
 
@@ -186,7 +210,7 @@ width: `${(questionIndex / 10) * 100}%`
 
 <div className="space-y-4">
 
-{question.options.map((option, index) => (
+{question.options.map((option: string, index: number) => (
 
 <button
 key={index}
