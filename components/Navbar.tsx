@@ -55,9 +55,9 @@ export default function Navbar() {
                              shadow-lg w-56 overflow-hidden"
                 >
                   {[
-                    { name: "URL Checker", href: "/tools/url" },
-                    { name: "Phishing Analysis", href: "/tools/phishing" },
-                    { name: "Email Checker", href: "/tools/email" },
+                    { name: "URL Checker", href: "/tools/url-checker" },
+                    { name: "Phishing Analysis", href: "/tools/phishing-analysis" },
+                    { name: "Email Checker", href: "/tools/email-checker" },
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -80,7 +80,7 @@ export default function Navbar() {
             href="/about"
             className="hover:text-green-400 transition relative group"
           >
-            About
+            Learn
             <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-green-400 group-hover:w-full transition-all duration-300"></span>
           </Link>
 
