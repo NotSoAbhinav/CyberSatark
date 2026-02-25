@@ -80,7 +80,7 @@ export default function Navbar() {
             href="/about"
             className="hover:text-green-400 transition relative group"
           >
-            about
+            About
             <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-green-400 group-hover:w-full transition-all duration-300"></span>
           </Link>
 
