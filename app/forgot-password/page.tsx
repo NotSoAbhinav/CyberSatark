@@ -3,87 +3,55 @@
 import { useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { motion } from "framer-motion";
 import Link from "next/link";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("");
 
   const handleReset = async () => {
-    setError("");
-    setMessage("");
-
     if (!email) {
-      setError("Please enter your email");
+      setStatus("Enter your email");
       return;
     }
 
     try {
-      setLoading(true);
       await sendPasswordResetEmail(auth, email);
-      setMessage("Password reset link sent to your email");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      setStatus("Reset link sent. Check your email.");
+    } catch {
+      setStatus("Something went wrong");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020617] text-gray-200">
+    <div className="min-h-screen flex items-center justify-center bg-black text-white">
+      <div className="p-6 border rounded-lg w-80 space-y-4">
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-[#07142a] border border-[#12345c] p-8 rounded-xl w-full max-w-md space-y-6"
-      >
-        <h1 className="text-2xl font-bold text-green-400 text-center">
+        <h1 className="text-xl font-bold text-center">
           Forgot Password
         </h1>
 
-        <p className="text-sm text-gray-400 text-center">
-          Enter your email to receive a reset link
-        </p>
-
-        {/* EMAIL INPUT */}
         <input
           type="email"
-          placeholder="Enter your email"
-          value={email}
+          placeholder="Enter email"
+          className="w-full p-2 border rounded bg-black"
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 rounded-lg bg-[#020617] border border-[#12345c] outline-none focus:border-green-400"
         />
 
-        {/* BUTTON */}
         <button
           onClick={handleReset}
-          disabled={loading}
-          className="w-full bg-green-400 text-black font-semibold py-2 rounded-lg hover:bg-green-300 transition"
+          className="w-full bg-green-400 text-black p-2 rounded"
         >
-          {loading ? "Sending..." : "Send Reset Link"}
+          Send Reset Link
         </button>
 
-        {/* SUCCESS MESSAGE */}
-        {message && (
-          <p className="text-green-400 text-sm text-center">{message}</p>
-        )}
+        <p className="text-sm text-center">{status}</p>
 
-        {/* ERROR MESSAGE */}
-        {error && (
-          <p className="text-red-400 text-sm text-center">{error}</p>
-        )}
+        <Link href="/login" className="text-green-400 text-sm block text-center">
+          Back to Login
+        </Link>
 
-        {/* BACK TO LOGIN */}
-        <div className="text-center text-sm">
-          <Link href="/login" className="text-green-400 hover:underline">
-            Back to Login
-          </Link>
-        </div>
-      </motion.div>
-
+      </div>
     </div>
   );
 }
