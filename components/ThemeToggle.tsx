@@ -3,25 +3,36 @@ import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(true); // default dark
+  // Avoid SSR/client mismatch by waiting for mount before reading localStorage
+  const [dark, setDark] = useState<boolean | null>(null);
 
-  // Load saved theme
   useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved === "light") setDark(false);
-    else setDark(true);
+    try {
+      const saved = localStorage.getItem("theme");
+      if (saved === "light") setDark(false);
+      else if (saved === "dark") setDark(true);
+      else {
+        // Respect user preference if available
+        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        setDark(prefersDark ?? true);
+      }
+    } catch {
+      setDark(true);
+    }
   }, []);
 
-  // Apply theme
+  // Apply theme when we have a concrete value
   useEffect(() => {
-    if (dark) {
-      document.body.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-    }
-
-    localStorage.setItem("theme", dark ? "dark" : "light");
+    if (dark === null) return;
+    if (dark) document.body.classList.add("dark");
+    else document.body.classList.remove("dark");
+    try {
+      localStorage.setItem("theme", dark ? "dark" : "light");
+    } catch {}
   }, [dark]);
+
+  // Do not render interactive UI until mounted to prevent hydration flash
+  if (dark === null) return null;
 
   return (
     <button
