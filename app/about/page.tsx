@@ -108,7 +108,7 @@ export default function AboutPage() {
               {
                 name: "Jaiyansh Dhaulakhandi",
                 github: "https://github.com/Jaiyansh12",
-                linkedin: "https://www.linkedin.com/in/jaiyansh-dhaulakhandi-0ba80b37a/",
+                linkedin: "https://www.linkedin.com/in/jaiyansh-4n6/",
               },
               {
                 name: "Ritambhar Advait",
