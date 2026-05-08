@@ -9,9 +9,10 @@ export default function AboutPage() {
     <>
       <Navbar />
 
-      {/* Background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden bg-[#0a0f1a]">
+      {/* BACKGROUND */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute w-[600px] h-[600px] bg-green-500/10 blur-3xl rounded-full top-[-200px] left-[-200px] animate-pulse"></div>
+
         <div className="absolute w-[500px] h-[500px] bg-blue-500/10 blur-3xl rounded-full bottom-[-150px] right-[-150px] animate-pulse"></div>
 
         <div
@@ -28,14 +29,15 @@ export default function AboutPage() {
         .highlight-hover {
           transition: all 0.3s ease;
         }
+
         .highlight-hover:hover {
           color: #00ff99;
-          text-shadow: 0 0 8px rgba(0, 255, 153, 0.8);
+          text-shadow: 0 0 12px rgba(0, 255, 153, 0.9);
           letter-spacing: 0.5px;
         }
       `}</style>
 
-      <div className="px-8 py-32 max-w-6xl mx-auto space-y-32">
+      <div className="px-8 py-32 max-w-6xl mx-auto space-y-32 text-white">
 
         {/* HERO */}
         <motion.section
@@ -44,14 +46,30 @@ export default function AboutPage() {
           transition={{ duration: 0.6 }}
           className="text-center space-y-6"
         >
-          <h1 className="text-5xl md:text-6xl font-bold text-green-400 drop-shadow-lg highlight-hover cursor-pointer">
-            About CyberSatark
+          <h1 className="text-5xl md:text-6xl font-bold text-green-400 cursor-pointer">
+            <motion.span
+              className="highlight-hover"
+              animate={{
+                textShadow: [
+                  "0 0 6px rgba(34,197,94,0.4)",
+                  "0 0 18px rgba(34,197,94,1)",
+                  "0 0 6px rgba(34,197,94,0.4)",
+                ],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+              }}
+            >
+              About CyberSatark
+            </motion.span>
           </h1>
 
           <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            CyberSatark is an AI-powered phishing awareness platform built to
-            strengthen human judgment through intelligent detection systems
-            and immersive cybersecurity simulations.
+            CyberSatark is an AI-powered phishing awareness
+            platform built to strengthen human judgment
+            through intelligent detection systems and
+            immersive cybersecurity simulations.
           </p>
         </motion.section>
 
@@ -63,28 +81,49 @@ export default function AboutPage() {
           viewport={{ once: true }}
           className="grid md:grid-cols-2 gap-16"
         >
-          <div className="space-y-5">
-            <h2 className="text-3xl font-semibold text-green-400 highlight-hover cursor-pointer border-b border-green-500/30 pb-2">
+
+          {/* MISSION */}
+          <div className="space-y-5 rounded-3xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-8 shadow-2xl shadow-green-500/10">
+
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+
+              
+            </div>
+
+            <h2 className="text-3xl font-semibold text-green-400 highlight-hover cursor-pointer border-b border-green-500/20 pb-3">
               Our Mission
             </h2>
+
             <p className="text-gray-300 leading-relaxed">
-              To transform passive internet users into proactive cyber defenders
-              by combining machine learning intelligence with real-world awareness training.
+              To transform passive internet users into
+              proactive cyber defenders by combining
+              machine learning intelligence with real-world
+              awareness training.
             </p>
           </div>
 
-          <div className="space-y-5">
-            <h2 className="text-3xl font-semibold text-green-400 highlight-hover cursor-pointer border-b border-green-500/30 pb-2">
+          {/* APPROACH */}
+          <div className="space-y-5 rounded-3xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-8 shadow-2xl shadow-green-500/10">
+
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+
+             
+            </div>
+
+            <h2 className="text-3xl font-semibold text-green-400 highlight-hover cursor-pointer border-b border-green-500/20 pb-3">
               Our Approach
             </h2>
+
             <p className="text-gray-300 leading-relaxed">
-              We integrate rule-based analysis, AI-driven classification,
-              behavioral profiling, and simulation-based education
-              to create a multi-layered cybersecurity ecosystem.
+              We integrate rule-based analysis, AI-driven
+              classification, behavioral profiling, and
+              simulation-based education to create a
+              multi-layered cybersecurity ecosystem.
             </p>
           </div>
         </motion.section>
-        
 
         {/* TEAM */}
         <motion.section
@@ -94,53 +133,79 @@ export default function AboutPage() {
           viewport={{ once: true }}
           className="text-center space-y-12"
         >
+
           <h2 className="text-3xl font-semibold text-green-400 highlight-hover cursor-pointer">
             Team Error404
           </h2>
 
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-10">
+
             {[
               {
                 name: "Abhinav Mishra",
-                github: "https://github.com/NotSoAbhinav",
-                linkedin: "https://www.linkedin.com/in/notsoabhinav/",
+                github:
+                  "https://github.com/NotSoAbhinav",
+                linkedin:
+                  "https://www.linkedin.com/in/notsoabhinav/",
               },
               {
                 name: "Jaiyansh Dhaulakhandi",
-                github: "https://github.com/Jaiyansh12",
-                linkedin: "https://www.linkedin.com/in/jaiyansh-4n6/",
+                github:
+                  "https://github.com/Jaiyansh12",
+                linkedin:
+                  "https://www.linkedin.com/in/jaiyansh-4n6/",
               },
               {
                 name: "Ritambhar Advait",
-                github: "https://github.com/RitambharAdvait",
-                linkedin: "https://www.linkedin.com/in/ritambhar-advait-0b3b2137b/",
+                github:
+                  "https://github.com/RitambharAdvait",
+                linkedin:
+                  "https://www.linkedin.com/in/ritambhar-advait-0b3b2137b/",
               },
               {
                 name: "Piyush Kumar",
-                github: "https://github.com/piyushkumar-git",
-                linkedin: "https://www.linkedin.com/in/piyush-kumar-4223ba231/",
+                github:
+                  "https://github.com/piyushkumar-git",
+                linkedin:
+                  "https://www.linkedin.com/in/piyush-kumar-4223ba231/",
               },
             ].map((member, index) => (
-              <div
+              <motion.div
                 key={index}
-                className="flex flex-col items-center p-6 rounded-xl bg-black/40 border border-green-500/20 hover:-translate-y-1 hover:shadow-green-400/30 hover:shadow-lg transition duration-300"
+                whileHover={{
+                  y: -6,
+                  scale: 1.02,
+                }}
+                className="flex flex-col items-center p-6 rounded-3xl bg-black/30 backdrop-blur-xl border border-green-500/20 hover:shadow-green-400/20 hover:shadow-2xl transition duration-300"
               >
-                <img
-                  src={`https://github.com/${member.github.split("/").pop()}.png`}
-                  alt={member.name}
-                  className="w-20 h-20 rounded-full border-2 border-green-400 object-cover mb-4 hover:scale-110 transition duration-300"
-                />
 
+                {/* AVATAR */}
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 blur-2xl bg-green-500/10 rounded-full"></div>
+
+                  <img
+                    src={`https://github.com/${
+                      member.github
+                        .split("/")
+                        .pop()
+                    }.png`}
+                    alt={member.name}
+                    className="relative w-20 h-20 rounded-full border-2 border-green-400 object-cover hover:scale-110 transition duration-300 shadow-lg shadow-green-500/20"
+                  />
+                </div>
+
+                {/* NAME */}
                 <h3 className="text-white font-medium mb-3 highlight-hover cursor-pointer">
                   {member.name}
                 </h3>
 
-                {/* SOCIAL ICONS */}
+                {/* SOCIALS */}
                 <div className="flex gap-4">
+
                   <a
                     href={member.github}
                     target="_blank"
-                    className="text-gray-400 hover:text-green-400 transition"
+                    className="p-2 rounded-xl bg-black/40 border border-green-500/10 text-gray-400 hover:text-green-400 hover:border-green-400/30 transition"
                   >
                     <Github size={20} />
                   </a>
@@ -148,16 +213,15 @@ export default function AboutPage() {
                   <a
                     href={member.linkedin}
                     target="_blank"
-                    className="text-gray-400 hover:text-green-400 transition"
+                    className="p-2 rounded-xl bg-black/40 border border-green-500/10 text-gray-400 hover:text-green-400 hover:border-green-400/30 transition"
                   >
                     <Linkedin size={20} />
                   </a>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.section>
-
       </div>
     </>
   );
