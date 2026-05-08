@@ -1,411 +1,671 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import { motion } from "framer-motion";
+
+type Verdict =
+  | "SAFE"
+  | "SUSPICIOUS"
+  | "DANGEROUS";
+
+interface Finding {
+  severity: "critical" | "high" | "medium" | "low";
+  title: string;
+  detail: string;
+}
 
 interface AnalysisResult {
-  verdict: "safe" | "suspicious" | "dangerous" | "unknown";
-  score: number;
+  verdict: Verdict;
+  risk: number;
+  confidence: number;
   summary: string;
-  categories: {
-    label: string;
-    status: "ok" | "warn" | "danger" | "info";
-    detail: string;
-  }[];
-  finalVerdict: string;
+  findings: Finding[];
+  indicators: string[];
+  domain: string;
+  protocol: string;
+  dimensions: {
+    domainRisk: number;
+    phishingRisk: number;
+    technicalRisk: number;
+    urlStructure: number;
+    trustScore: number;
+  };
+}
+
+function getRiskColor(score: number) {
+  if (score >= 70)
+    return {
+      text: "text-red-400",
+      bar: "bg-red-500",
+    };
+
+  if (score >= 40)
+    return {
+      text: "text-yellow-400",
+      bar: "bg-yellow-500",
+    };
+
+  return {
+    text: "text-green-400",
+    bar: "bg-green-500",
+  };
+}
+
+function analyseURL(
+  input: string
+): AnalysisResult {
+  let risk = 0;
+
+  const findings: Finding[] = [];
+
+  const indicators: string[] = [];
+
+  let domainRisk = 0;
+  let phishingRisk = 0;
+  let technicalRisk = 0;
+  let urlStructure = 0;
+  let trustScore = 100;
+
+  let parsed: URL;
+
+  try {
+    parsed = new URL(
+      input.startsWith("http")
+        ? input
+        : `https://${input}`
+    );
+  } catch {
+    return {
+      verdict: "DANGEROUS",
+      risk: 100,
+      confidence: 95,
+      summary:
+        "The submitted input is not a valid URL.",
+      findings: [
+        {
+          severity: "critical",
+          title: "Invalid URL Format",
+          detail:
+            "The URL format appears malformed or invalid.",
+        },
+      ],
+      indicators: [],
+      domain: "Unknown",
+      protocol: "Unknown",
+      dimensions: {
+        domainRisk: 100,
+        phishingRisk: 100,
+        technicalRisk: 100,
+        urlStructure: 100,
+        trustScore: 0,
+      },
+    };
+  }
+
+  const domain = parsed.hostname.toLowerCase();
+
+  const protocol = parsed.protocol;
+
+  const path = parsed.pathname.toLowerCase();
+
+  // HTTPS CHECK
+  if (protocol !== "https:") {
+    risk += 25;
+    technicalRisk += 35;
+    trustScore -= 20;
+
+    findings.push({
+      severity: "high",
+      title: "Insecure Connection",
+      detail:
+        "The website is not using HTTPS encryption.",
+    });
+  }
+
+  // IP ADDRESS URL
+  if (
+    /^(\d{1,3}\.){3}\d{1,3}$/.test(domain)
+  ) {
+    risk += 35;
+    technicalRisk += 40;
+    trustScore -= 30;
+
+    findings.push({
+      severity: "critical",
+      title: "IP Address URL",
+      detail:
+        "Using raw IP addresses instead of domains is commonly associated with phishing.",
+    });
+  }
+
+  // URL SHORTENERS
+  const shorteners = [
+    "bit.ly",
+    "tinyurl",
+    "t.co",
+    "goo.gl",
+    "is.gd",
+  ];
+
+  if (
+    shorteners.some((s) =>
+      domain.includes(s)
+    )
+  ) {
+    risk += 30;
+    phishingRisk += 40;
+    trustScore -= 25;
+
+    findings.push({
+      severity: "high",
+      title: "Shortened URL Detected",
+      detail:
+        "URL shorteners are often used to hide malicious destinations.",
+    });
+  }
+
+  // SUSPICIOUS KEYWORDS
+  const suspiciousWords = [
+    "login",
+    "verify",
+    "secure",
+    "account",
+    "update",
+    "bank",
+    "wallet",
+    "password",
+    "signin",
+    "confirm",
+  ];
+
+  suspiciousWords.forEach((word) => {
+    if (
+      domain.includes(word) ||
+      path.includes(word)
+    ) {
+      risk += 8;
+      phishingRisk += 10;
+      urlStructure += 10;
+    }
+  });
+
+  if (phishingRisk >= 20) {
+    findings.push({
+      severity: "medium",
+      title: "Phishing-Style Keywords",
+      detail:
+        "URL contains keywords commonly seen in credential harvesting attacks.",
+    });
+  }
+
+  // EXCESSIVE SUBDOMAINS
+  const subdomains = domain.split(".");
+
+  if (subdomains.length >= 5) {
+    risk += 20;
+    urlStructure += 30;
+    trustScore -= 15;
+
+    findings.push({
+      severity: "medium",
+      title: "Excessive Subdomains",
+      detail:
+        "The domain structure appears unusually complex or misleading.",
+    });
+  }
+
+  // SUSPICIOUS TLD
+  const suspiciousTlds = [
+    ".ru",
+    ".tk",
+    ".xyz",
+    ".top",
+    ".gq",
+  ];
+
+  suspiciousTlds.forEach((tld) => {
+    if (domain.endsWith(tld)) {
+      risk += 20;
+      domainRisk += 25;
+      trustScore -= 20;
+
+      findings.push({
+        severity: "medium",
+        title: "Suspicious Domain TLD",
+        detail:
+          "This top-level domain is commonly abused in phishing campaigns.",
+      });
+    }
+  });
+
+  // BRAND IMPERSONATION
+  const brands = [
+    "paypal",
+    "google",
+    "amazon",
+    "microsoft",
+    "apple",
+    "instagram",
+    "facebook",
+    "netflix",
+    "bank",
+  ];
+
+  brands.forEach((brand) => {
+    if (
+      domain.includes(brand) &&
+      !domain.endsWith(`${brand}.com`)
+    ) {
+      risk += 25;
+      phishingRisk += 35;
+      trustScore -= 20;
+
+      findings.push({
+        severity: "high",
+        title: "Possible Brand Impersonation",
+        detail:
+          "The domain appears to mimic a trusted brand.",
+      });
+    }
+  });
+
+  // LONG URL
+  if (input.length > 120) {
+    risk += 10;
+    urlStructure += 15;
+
+    findings.push({
+      severity: "low",
+      title: "Long URL Structure",
+      detail:
+        "Very long URLs may attempt to hide malicious paths or parameters.",
+    });
+  }
+
+  // SPECIAL CHARS
+  if (
+    input.includes("@") ||
+    input.includes("%")
+  ) {
+    risk += 15;
+    technicalRisk += 20;
+
+    findings.push({
+      severity: "medium",
+      title: "Encoded or Obfuscated Characters",
+      detail:
+        "The URL contains symbols commonly used in deceptive URLs.",
+    });
+  }
+
+  // QUERY PARAMS
+  if (parsed.search.length > 60) {
+    risk += 10;
+    urlStructure += 15;
+
+    findings.push({
+      severity: "low",
+      title: "Complex Query Parameters",
+      detail:
+        "The URL contains unusually long or complex query strings.",
+    });
+  }
+
+  indicators.push(domain);
+
+  risk = Math.min(risk, 100);
+
+  trustScore = Math.max(
+    0,
+    Math.min(trustScore, 100)
+  );
+
+  let verdict: Verdict = "SAFE";
+
+  if (risk >= 70) verdict = "DANGEROUS";
+  else if (risk >= 35)
+    verdict = "SUSPICIOUS";
+
+  const confidence = Math.min(
+    95,
+    50 + findings.length * 8
+  );
+
+  const summary =
+    verdict === "SAFE"
+      ? "The URL does not show major phishing or malicious indicators."
+      : `The URL contains ${findings.length} suspicious indicators associated with phishing, deception, or unsafe web activity.`;
+
+  return {
+    verdict,
+    risk,
+    confidence,
+    summary,
+    findings,
+    indicators,
+    domain,
+    protocol,
+    dimensions: {
+      domainRisk,
+      phishingRisk,
+      technicalRisk,
+      urlStructure,
+      trustScore,
+    },
+  };
 }
 
 export default function URLChecker() {
   const [url, setUrl] = useState("");
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [loadingStage, setLoadingStage] = useState("");
 
-  const analyzeURL = async () => {
-    const trimmed = url.trim();
-    if (!trimmed) return;
+  const [loading, setLoading] =
+    useState(false);
+
+  const [analysis, setAnalysis] =
+    useState<AnalysisResult | null>(null);
+
+  const runAnalysis = async () => {
+    if (!url.trim()) return;
 
     setLoading(true);
-    setAnalysis(null);
-    setError("");
-    setLoadingStage("Sending URL to AI for deep analysis...");
 
-    try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: `You are a cybersecurity URL analyzer. Analyze the given URL deeply and return ONLY a valid JSON object with no markdown, no code fences, no preamble.
+    await new Promise((r) =>
+      setTimeout(r, 1800)
+    );
 
-Analyze the URL across these dimensions:
-1. Domain reputation & legitimacy (Is the domain trustworthy? Known brand? Newly registered pattern?)
-2. URL structure (suspicious paths, encoded chars, obfuscation, misleading subdomain tricks)
-3. Content intent inference (What does this URL appear to try to do based on path/params/keywords?)
-4. Phishing signals (brand impersonation, typosquatting, lookalike domains)
-5. Technical red flags (IP-based URLs, unusual ports, redirect chains, URL shorteners)
-6. SSL/HTTPS posture
-7. Overall trustworthiness
+    const result = analyseURL(url);
 
-Return this exact JSON structure:
-{
-  "verdict": "safe" | "suspicious" | "dangerous" | "unknown",
-  "score": <0-100, where 0=completely safe, 100=definitely malicious>,
-  "summary": "<2-3 sentence natural language summary of what this URL appears to be and why>",
-  "categories": [
-    { "label": "Domain Legitimacy", "status": "ok"|"warn"|"danger"|"info", "detail": "<specific finding>" },
-    { "label": "URL Structure", "status": "ok"|"warn"|"danger"|"info", "detail": "<specific finding>" },
-    { "label": "Content Intent", "status": "ok"|"warn"|"danger"|"info", "detail": "<specific finding>" },
-    { "label": "Phishing Signals", "status": "ok"|"warn"|"danger"|"info", "detail": "<specific finding>" },
-    { "label": "Technical Flags", "status": "ok"|"warn"|"danger"|"info", "detail": "<specific finding>" },
-    { "label": "HTTPS/SSL", "status": "ok"|"warn"|"danger"|"info", "detail": "<specific finding>" }
-  ],
-  "finalVerdict": "<1 sentence direct recommendation e.g. 'Do not visit this URL' or 'This appears to be a legitimate website'>"
-}`,
-          messages: [
-            {
-              role: "user",
-              content: `Analyze this URL: ${trimmed}`
-            }
-          ]
-        })
-      });
+    setAnalysis(result);
 
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-      const data = await response.json();
-      const text = data.content?.map((b: any) => b.text || "").join("") ?? "";
-      const clean = text.replace(/```json|```/g, "").trim();
-      const parsed: AnalysisResult = JSON.parse(clean);
-      setAnalysis(parsed);
-    } catch (err: any) {
-      setError("Analysis failed. Please check the URL and try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-      setLoadingStage("");
-    }
+    setLoading(false);
   };
 
-  const getVerdictConfig = () => {
-    if (!analysis) return { color: "#6b7280", label: "", bg: "transparent", border: "transparent" };
-    switch (analysis.verdict) {
-      case "safe":
-        return { color: "#22c55e", label: "Safe", bg: "rgba(34,197,94,0.08)", border: "rgba(34,197,94,0.25)" };
-      case "suspicious":
-        return { color: "#f59e0b", label: "Suspicious", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.25)" };
-      case "dangerous":
-        return { color: "#ef4444", label: "Dangerous", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.25)" };
-      default:
-        return { color: "#6b7280", label: "Unknown", bg: "rgba(107,114,128,0.08)", border: "rgba(107,114,128,0.25)" };
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "ok": return { icon: "✓", color: "#22c55e" };
-      case "warn": return { icon: "!", color: "#f59e0b" };
-      case "danger": return { icon: "✗", color: "#ef4444" };
-      default: return { icon: "i", color: "#60a5fa" };
-    }
-  };
-
-  const verdict = getVerdictConfig();
+  const riskColor = useMemo(
+    () =>
+      analysis
+        ? getRiskColor(analysis.risk)
+        : null,
+    [analysis]
+  );
 
   return (
     <>
       <Navbar />
 
-      <div style={{
-        minHeight: "100vh",
-        background: "#080d18",
-        color: "#e2e8f0",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "7rem 1.5rem 4rem",
-        fontFamily: "'Inter', 'Segoe UI', sans-serif"
-      }}>
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "2.5rem", maxWidth: "640px" }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            background: "rgba(34,197,94,0.1)",
-            border: "1px solid rgba(34,197,94,0.2)",
-            borderRadius: "20px",
-            padding: "4px 14px",
-            fontSize: "12px",
-            color: "#4ade80",
-            marginBottom: "1rem",
-            letterSpacing: "0.05em",
-            textTransform: "uppercase"
-          }}>
-            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
-            AI-Powered Analysis
-          </div>
-          <h1 style={{
-            fontSize: "clamp(1.8rem, 4vw, 2.6rem)",
-            fontWeight: 700,
-            color: "#f1f5f9",
-            margin: "0 0 0.75rem",
-            letterSpacing: "-0.02em",
-            lineHeight: 1.2
-          }}>
-            URL Security Analyzer
-          </h1>
-          <p style={{ color: "#64748b", fontSize: "15px", margin: 0, lineHeight: 1.6 }}>
-            Deep AI analysis — not just pattern matching. Understands domain reputation, intent, phishing tactics, and technical structure.
-          </p>
-        </div>
+      {/* BACKGROUND */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute w-[600px] h-[600px] bg-green-500/10 blur-3xl rounded-full top-[-200px] left-[-200px] animate-pulse"></div>
 
-        {/* Input Area */}
-        <div style={{ width: "100%", maxWidth: "680px" }}>
-          <div style={{
-            display: "flex",
-            gap: "10px",
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "14px",
-            padding: "8px",
-            marginBottom: "1.5rem"
-          }}>
-            <input
-              type="text"
-              placeholder="Paste any URL to analyze — e.g. https://example.com/login"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !loading && analyzeURL()}
-              style={{
-                flex: 1,
-                background: "transparent",
-                border: "none",
-                outline: "none",
-                color: "#e2e8f0",
-                fontSize: "14px",
-                padding: "10px 14px",
-              }}
-            />
-            <button
-              onClick={analyzeURL}
-              disabled={loading || !url.trim()}
-              style={{
-                background: loading ? "rgba(34,197,94,0.3)" : "#16a34a",
-                color: "#fff",
-                border: "none",
-                borderRadius: "10px",
-                padding: "10px 22px",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: loading || !url.trim() ? "not-allowed" : "pointer",
-                transition: "all 0.2s",
-                whiteSpace: "nowrap",
-                opacity: !url.trim() ? 0.5 : 1
-              }}
-            >
-              {loading ? "Analyzing..." : "Analyze"}
-            </button>
-          </div>
+        <div className="absolute w-[500px] h-[500px] bg-blue-500/10 blur-3xl rounded-full bottom-[-150px] right-[-150px] animate-pulse"></div>
 
-          {/* Loading state */}
-          {loading && (
-            <div style={{
-              background: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: "14px",
-              padding: "2rem",
-              textAlign: "center"
-            }}>
-              <div style={{
-                width: "40px",
-                height: "40px",
-                border: "2px solid rgba(34,197,94,0.2)",
-                borderTop: "2px solid #22c55e",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-                margin: "0 auto 1rem"
-              }} />
-              <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0 }}>
-                {loadingStage || "Analyzing URL with AI..."}
-              </p>
-              <p style={{ color: "#475569", fontSize: "12px", margin: "4px 0 0" }}>
-                Checking domain reputation, structure, intent & phishing signals
-              </p>
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
-          )}
-
-          {/* Error */}
-          {error && (
-            <div style={{
-              background: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.2)",
-              borderRadius: "12px",
-              padding: "1rem 1.25rem",
-              color: "#fca5a5",
-              fontSize: "14px"
-            }}>
-              {error}
-            </div>
-          )}
-
-          {/* Results */}
-          {analysis && !loading && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-
-              {/* Verdict Banner */}
-              <div style={{
-                background: verdict.bg,
-                border: `1px solid ${verdict.border}`,
-                borderRadius: "14px",
-                padding: "1.5rem",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "1rem"
-              }}>
-                <div style={{
-                  width: "52px",
-                  height: "52px",
-                  borderRadius: "50%",
-                  background: `${verdict.color}22`,
-                  border: `2px solid ${verdict.color}44`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0
-                }}>
-                  <span style={{ fontSize: "22px", color: verdict.color, fontWeight: 700 }}>
-                    {analysis.verdict === "safe" ? "✓" : analysis.verdict === "dangerous" ? "✗" : "!"}
-                  </span>
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px", flexWrap: "wrap" }}>
-                    <span style={{ fontSize: "18px", fontWeight: 700, color: verdict.color }}>{verdict.label}</span>
-                    <span style={{
-                      background: `${verdict.color}22`,
-                      color: verdict.color,
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      padding: "2px 10px",
-                      borderRadius: "20px",
-                      border: `1px solid ${verdict.color}33`
-                    }}>Risk: {analysis.score}/100</span>
-                  </div>
-                  <p style={{ color: "#cbd5e1", fontSize: "14px", margin: "0 0 8px", lineHeight: 1.6 }}>
-                    {analysis.summary}
-                  </p>
-                  <p style={{
-                    fontSize: "13px",
-                    color: verdict.color,
-                    fontWeight: 500,
-                    margin: 0,
-                    padding: "8px 12px",
-                    background: `${verdict.color}11`,
-                    borderRadius: "8px",
-                    border: `1px solid ${verdict.color}22`
-                  }}>
-                    {analysis.finalVerdict}
-                  </p>
-                </div>
-              </div>
-
-              {/* Risk Score Bar */}
-              <div style={{
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: "12px",
-                padding: "1rem 1.25rem"
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "12px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Risk Score</span>
-                  <span style={{ fontSize: "12px", color: verdict.color, fontWeight: 600 }}>{analysis.score}%</span>
-                </div>
-                <div style={{
-                  height: "6px",
-                  background: "rgba(255,255,255,0.06)",
-                  borderRadius: "3px",
-                  overflow: "hidden"
-                }}>
-                  <div style={{
-                    height: "100%",
-                    width: `${analysis.score}%`,
-                    background: analysis.score < 30 ? "#22c55e" : analysis.score < 60 ? "#f59e0b" : "#ef4444",
-                    borderRadius: "3px",
-                    transition: "width 0.8s ease"
-                  }} />
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px" }}>
-                  <span style={{ fontSize: "11px", color: "#22c55e" }}>Safe</span>
-                  <span style={{ fontSize: "11px", color: "#f59e0b" }}>Suspicious</span>
-                  <span style={{ fontSize: "11px", color: "#ef4444" }}>Dangerous</span>
-                </div>
-              </div>
-
-              {/* Category Breakdown */}
-              <div style={{
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: "12px",
-                padding: "1.25rem",
-                display: "flex",
-                flexDirection: "column",
-                gap: "2px"
-              }}>
-                <p style={{ fontSize: "12px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 12px" }}>
-                  Detailed Findings
-                </p>
-                {analysis.categories.map((cat, i) => {
-                  const s = getStatusIcon(cat.status);
-                  return (
-                    <div key={i} style={{
-                      display: "flex",
-                      gap: "12px",
-                      padding: "10px 12px",
-                      borderRadius: "8px",
-                      background: "rgba(255,255,255,0.02)",
-                      alignItems: "flex-start"
-                    }}>
-                      <div style={{
-                        width: "22px",
-                        height: "22px",
-                        borderRadius: "50%",
-                        background: `${s.color}22`,
-                        border: `1px solid ${s.color}44`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        color: s.color,
-                        marginTop: "1px"
-                      }}>
-                        {s.icon}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontSize: "13px", fontWeight: 600, color: "#e2e8f0", display: "block", marginBottom: "2px" }}>
-                          {cat.label}
-                        </span>
-                        <span style={{ fontSize: "13px", color: "#94a3b8", lineHeight: 1.5 }}>
-                          {cat.detail}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Disclaimer */}
-              <p style={{ fontSize: "11px", color: "#334155", textAlign: "center", margin: "4px 0 0" }}>
-                AI analysis is informational only. Always exercise caution with unknown links.
-              </p>
-            </div>
-          )}
-        </div>
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage:
+              "linear-gradient(#00ff99 1px, transparent 1px), linear-gradient(90deg, #00ff99 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
       </div>
+
+      <main className="min-h-screen px-6 py-28 text-white">
+        <div className="max-w-6xl mx-auto">
+
+          {/* HERO */}
+          <motion.div
+            initial={{ opacity: 0, y: 35 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-16"
+          >
+            <h1 className="text-5xl md:text-6xl font-bold text-green-400">
+              <motion.span
+                animate={{
+                  textShadow: [
+                    "0 0 6px rgba(34,197,94,0.4)",
+                    "0 0 18px rgba(34,197,94,1)",
+                    "0 0 6px rgba(34,197,94,0.4)",
+                  ],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                }}
+              >
+                URL Threat Scanner
+              </motion.span>
+            </h1>
+
+            <p className="mt-6 text-gray-300 max-w-2xl mx-auto text-lg">
+              Analyze suspicious URLs using
+              phishing detection, structure analysis,
+              and technical threat intelligence.
+            </p>
+          </motion.div>
+
+          {/* INPUT */}
+          <motion.div
+            initial={{ opacity: 0, y: 35 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="backdrop-blur-xl bg-black/30 border border-green-500/20 rounded-3xl overflow-hidden shadow-2xl shadow-green-500/10"
+          >
+
+            {/* TOP BAR */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-green-500/10 bg-black/40">
+
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500/70"></div>
+
+                <div className="w-3 h-3 rounded-full bg-yellow-500/70"></div>
+
+                <div className="w-3 h-3 rounded-full bg-green-500/70"></div>
+              </div>
+
+              <p className="text-[11px] uppercase tracking-[0.3em] text-green-400 font-semibold">
+                URL Analysis Terminal
+              </p>
+
+              <div className="text-[10px] text-gray-600 font-mono">
+                url-scanner.ts
+              </div>
+            </div>
+
+            {/* INPUT FIELD */}
+            <div className="p-5">
+              <input
+                type="text"
+                value={url}
+                onChange={(e) =>
+                  setUrl(e.target.value)
+                }
+                placeholder="Paste suspicious URL here..."
+                className="w-full rounded-2xl bg-[#050b12] border border-green-500/10 p-5 text-sm font-mono text-green-300 placeholder:text-gray-600 focus:outline-none focus:border-green-400/40"
+              />
+
+              <div className="mt-5 flex flex-col sm:flex-row gap-4 items-center justify-between">
+
+                <div className="flex items-center gap-3 text-xs text-gray-500 font-mono">
+                  <span className="text-green-400">
+                    ●
+                  </span>
+                  Threat Intelligence Active
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={runAnalysis}
+                  disabled={loading}
+                  className="px-8 py-3 rounded-xl bg-green-500 text-black font-bold shadow-lg shadow-green-500/20 hover:shadow-green-400/40 transition disabled:opacity-40"
+                >
+                  {loading
+                    ? "Analysing..."
+                    : "Scan URL"}
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* RESULTS */}
+          {analysis && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-10 space-y-8"
+            >
+
+              {/* VERDICT */}
+              <div className="rounded-3xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-8 shadow-2xl shadow-green-500/10">
+
+                <div className="flex flex-col md:flex-row justify-between gap-8">
+
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-4">
+                      Threat Verdict
+                    </p>
+
+                    <div
+                      className={`px-4 py-2 rounded-full inline-block font-bold tracking-[0.2em] text-xs ${
+                        analysis.verdict ===
+                        "DANGEROUS"
+                          ? "bg-red-500/10 border border-red-500/30 text-red-400"
+                          : analysis.verdict ===
+                            "SUSPICIOUS"
+                          ? "bg-yellow-500/10 border border-yellow-500/30 text-yellow-400"
+                          : "bg-green-500/10 border border-green-500/30 text-green-400"
+                      }`}
+                    >
+                      {analysis.verdict}
+                    </div>
+                  </div>
+
+                  <div className="text-left md:text-right">
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">
+                      Risk Score
+                    </p>
+
+                    <h2
+                      className={`text-5xl font-bold ${riskColor?.text}`}
+                    >
+                      {analysis.risk}
+                    </h2>
+
+                    <p className="text-gray-500 mt-2 text-sm">
+                      Confidence:{" "}
+                      {analysis.confidence}%
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 w-full h-2 rounded-full bg-white/5 overflow-hidden">
+                  <div
+                    className={`h-full ${riskColor?.bar}`}
+                    style={{
+                      width: `${analysis.risk}%`,
+                    }}
+                  />
+                </div>
+
+                <p className="mt-6 text-gray-300 leading-relaxed">
+                  {analysis.summary}
+                </p>
+              </div>
+
+              {/* DETAILS */}
+              <div className="grid md:grid-cols-5 gap-5">
+                {Object.entries(
+                  analysis.dimensions
+                ).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5"
+                  >
+                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-3">
+                      {key}
+                    </p>
+
+                    <h3
+                      className={`text-2xl font-bold ${
+                        value >= 70
+                          ? "text-red-400"
+                          : value >= 40
+                          ? "text-yellow-400"
+                          : "text-green-400"
+                      }`}
+                    >
+                      {value}
+                    </h3>
+                  </div>
+                ))}
+              </div>
+
+              {/* FINDINGS */}
+              <div className="space-y-5">
+                {analysis.findings.length ===
+                0 ? (
+                  <div className="rounded-2xl border border-green-500/20 bg-black/30 p-5 text-green-400">
+                    ✓ No major threat indicators
+                    detected.
+                  </div>
+                ) : (
+                  analysis.findings.map(
+                    (finding, i) => (
+                      <div
+                        key={i}
+                        className="rounded-2xl border border-green-500/10 bg-black/30 backdrop-blur-xl p-5"
+                      >
+                        <div className="flex items-center gap-3 mb-3 flex-wrap">
+
+                          <h3 className="text-lg font-semibold text-white">
+                            {finding.title}
+                          </h3>
+
+                          <span className="text-[10px] px-2 py-1 rounded-full uppercase tracking-widest bg-red-500/10 text-red-400">
+                            {finding.severity}
+                          </span>
+                        </div>
+
+                        <p className="text-gray-400 leading-relaxed">
+                          {finding.detail}
+                        </p>
+                      </div>
+                    )
+                  )
+                )}
+              </div>
+
+              {/* IOCS */}
+              <div className="rounded-2xl border border-green-500/20 bg-black/30 p-5">
+                <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-4">
+                  Technical Details
+                </p>
+
+                <div className="space-y-3">
+
+                  <div className="font-mono text-sm text-green-300 bg-black/30 border border-green-500/10 rounded-xl px-4 py-3 break-all">
+                    Domain: {analysis.domain}
+                  </div>
+
+                  <div className="font-mono text-sm text-green-300 bg-black/30 border border-green-500/10 rounded-xl px-4 py-3 break-all">
+                    Protocol: {analysis.protocol}
+                  </div>
+
+                  {analysis.indicators.map(
+                    (ioc, i) => (
+                      <div
+                        key={i}
+                        className="font-mono text-sm text-green-300 bg-black/30 border border-green-500/10 rounded-xl px-4 py-3 break-all"
+                      >
+                        {ioc}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </main>
     </>
   );
 }
