@@ -77,7 +77,7 @@ export default function Navbar() {
 
           {/* ABOUT */}
           <Link
-            href="/About"
+            href="/about"
             className="hover:text-green-400 transition relative group"
           >
             About
