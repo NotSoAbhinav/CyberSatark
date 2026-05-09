@@ -2,6 +2,22 @@ export interface PasswordAnalysis {
   score: number
   strength: string
   findings: string[]
+  entropy: number
+}
+
+function calculateEntropy(password: string): number {
+  let charsetSize = 0
+
+  if (/[a-z]/.test(password)) charsetSize += 26
+  if (/[A-Z]/.test(password)) charsetSize += 26
+  if (/[0-9]/.test(password)) charsetSize += 10
+  if (/[^A-Za-z0-9]/.test(password)) charsetSize += 32
+
+  if (charsetSize === 0) return 0
+
+  return Math.round(
+    password.length * Math.log2(charsetSize)
+  )
 }
 
 export function analyzePassword(password: string): PasswordAnalysis {
@@ -44,9 +60,12 @@ export function analyzePassword(password: string): PasswordAnalysis {
     strength = "Medium"
   }
 
+  const entropy = calculateEntropy(password)
+
   return {
     score,
     strength,
-    findings
+    findings,
+    entropy
   }
 }
