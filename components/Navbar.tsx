@@ -58,6 +58,7 @@ export default function Navbar() {
                     { name: "URL Checker", href: "/tools/url-checker" },
                     { name: "Phishing Analysis", href: "/tools/phishing-analysis" },
                     { name: "Email Checker", href: "/tools/email-checker" },
+                    { name: "Password Analyzer", href: "/tools/password-analyzer"},
                   ].map((item) => (
                     <Link
                       key={item.href}
