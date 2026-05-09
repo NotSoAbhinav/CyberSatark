@@ -389,7 +389,7 @@ export default function PhishingAnalysis() {
                   repeat: Infinity,
                 }}
               >
-                PhishTrace AI
+                Phishing Analyzer
               </motion.span>
             </h1>
 
