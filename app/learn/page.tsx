@@ -1,5 +1,8 @@
 "use client";
+
 import { useState } from "react";
+import Navbar from "@/components/Navbar";
+import CyberBackground from "@/components/cyberbackground";
 
 const chapters = [
   "Introduction to Phishing",
@@ -18,104 +21,144 @@ export default function LearnPage() {
   const progress = ((active + 1) / chapters.length) * 100;
 
   return (
-    <div className="flex h-screen pt-24 bg-[#020817] text-gray-300">
-      {/* SIDEBAR */}
-      <aside className="w-80 border-r border-[#12345c] px-6 py-6 overflow-y-auto">
-        <h2 className="text-xl font-bold text-green-400 mb-6">
-          Phishing Guide
-        </h2>
+    <>
+      <Navbar />
+      <CyberBackground />
 
-        <div className="space-y-3">
-          {chapters.map((c, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              className={`w-full text-left px-4 py-3 rounded-xl border transition
-              ${
-                active === i
-                  ? "bg-[#102a4d] border-green-500 text-green-300"
-                  : "border-[#12345c] hover:bg-[#07142a]"
-              }`}
-            >
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">{c}</span>
-                {active > i && (
-                  <span className="text-green-400 text-xs">✓</span>
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-      </aside>
+      <div className="flex h-screen pt-24 text-gray-300">
 
-      {/* MAIN */}
-      <main className="flex-1 overflow-y-auto px-10 py-8 max-w-5xl mx-auto w-full">
-        {/* HEADER */}
-        <div className="mb-8 p-6 rounded-2xl border border-[#12345c] bg-[#07142a]">
-          <h1 className="text-2xl font-bold text-green-400 mb-2">
-            Phishing Awareness Training
-          </h1>
+        {/* SIDEBAR */}
+        <aside className="w-80 border-r border-green-500/10 px-6 py-6 overflow-y-auto backdrop-blur-xl bg-black/20">
 
-          <p className="text-sm text-gray-400 mb-4">
-            Learn how phishing works, identify attacks, and protect yourself
-            with real-world examples and quizzes.
-          </p>
+          <h2 className="text-xl font-bold text-green-400 mb-6">
+            Phishing Guide
+          </h2>
 
-          <div className="w-full h-2 bg-[#020817] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-green-500 transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
+          <div className="space-y-3">
+            {chapters.map((c, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                className={`w-full text-left px-4 py-3 rounded-xl border transition
+                ${
+                  active === i
+                    ? "bg-green-500/10 border-green-500 text-green-300"
+                    : "border-green-500/10 hover:bg-green-500/10"
+                }`}
+              >
+
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">
+                    {c}
+                  </span>
+
+                  {active > i && (
+                    <span className="text-green-400 text-xs">
+                      ✓
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        {/* MAIN */}
+        <main className="flex-1 overflow-y-auto px-10 py-8 max-w-5xl mx-auto w-full">
+
+          {/* HEADER */}
+          <div className="mb-8 p-6 rounded-3xl border border-green-500/20 bg-black/30 backdrop-blur-xl shadow-2xl shadow-green-500/10">
+
+            <h1 className="text-2xl font-bold text-green-400 mb-2">
+              Phishing Awareness Training
+            </h1>
+
+            <p className="text-sm text-gray-400 mb-4">
+              Learn how phishing works,
+              identify attacks, and protect
+              yourself with real-world
+              examples and quizzes.
+            </p>
+
+            <div className="w-full h-2 bg-[#020817] rounded-full overflow-hidden">
+
+              <div
+                className="h-full bg-green-500 transition-all duration-300"
+                style={{
+                  width: `${progress}%`,
+                }}
+              />
+            </div>
+
+            <p className="text-xs text-gray-500 mt-2">
+              Progress: {active + 1} /{" "}
+              {chapters.length} chapters
+            </p>
           </div>
 
-          <p className="text-xs text-gray-500 mt-2">
-            Progress: {active + 1} / {chapters.length} chapters
-          </p>
-        </div>
+          {/* CONTENT CARD */}
+          <div className="p-8 rounded-3xl border border-green-500/20 bg-black/30 backdrop-blur-xl shadow-2xl shadow-green-500/10">
 
-        {/* CONTENT CARD */}
-        <div className="p-8 rounded-2xl border border-[#12345c] bg-[#020817] shadow-lg">
-          {active === 0 && <Intro />}
-          {active === 1 && <HowWorks />}
-          {active === 2 && <Types />}
-          {active === 3 && <Identify />}
-          {active === 4 && <URLAnalysis />}
-          {active === 5 && <Impact />}
-          {active === 6 && <Prevention />}
-          {active === 7 && <Response />}
-          {active === 8 && <PersonalIncidentResponse />}
-        </div>
+            {active === 0 && <Intro />}
+            {active === 1 && <HowWorks />}
+            {active === 2 && <Types />}
+            {active === 3 && <Identify />}
+            {active === 4 && <URLAnalysis />}
+            {active === 5 && <Impact />}
+            {active === 6 && <Prevention />}
+            {active === 7 && <Response />}
+            {active === 8 && (
+              <PersonalIncidentResponse />
+            )}
+          </div>
 
-        {/* NAV BUTTONS */}
-        <div className="flex justify-between mt-6">
-          <button
-            disabled={active === 0}
-            onClick={() => setActive((p) => p - 1)}
-            className="px-4 py-2 rounded-lg border border-[#12345c] hover:bg-[#07142a] disabled:opacity-40"
-          >
-            ← Previous
-          </button>
+          {/* NAV BUTTONS */}
+          <div className="flex justify-between mt-6">
 
-          <button
-            disabled={active === chapters.length - 1}
-            onClick={() => setActive((p) => p + 1)}
-            className="px-4 py-2 rounded-lg border border-green-500 text-green-300 hover:bg-[#102a4d] disabled:opacity-40"
-          >
-            Next →
-          </button>
-        </div>
-      </main>
-    </div>
+            <button
+              disabled={active === 0}
+              onClick={() =>
+                setActive((p) => p - 1)
+              }
+              className="px-4 py-2 rounded-lg border border-green-500/10 hover:bg-green-500/10 disabled:opacity-40"
+            >
+              ← Previous
+            </button>
+
+            <button
+              disabled={
+                active ===
+                chapters.length - 1
+              }
+              onClick={() =>
+                setActive((p) => p + 1)
+              }
+              className="px-4 py-2 rounded-lg border border-green-500 text-green-300 hover:bg-green-500/10 disabled:opacity-40"
+            >
+              Next →
+            </button>
+          </div>
+        </main>
+      </div>
+    </>
   );
 }
 
 /* ---------- SECTION ---------- */
 
-function Section({ title, children }: any) {
+function Section({
+  title,
+  children,
+}: any) {
   return (
     <section>
-      <h2 className="text-2xl font-bold text-green-400 mb-4">{title}</h2>
-      <div className="space-y-4 leading-7">{children}</div>
+      <h2 className="text-2xl font-bold text-green-400 mb-4">
+        {title}
+      </h2>
+
+      <div className="space-y-4 leading-7">
+        {children}
+      </div>
     </section>
   );
 }
@@ -131,12 +174,19 @@ function Quiz({
   options: string[];
   answerIndex: number;
 }) {
-  const [selected, setSelected] = useState<number | null>(null);
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [selected, setSelected] =
+    useState<number | null>(null);
+
+  const [showAnswer, setShowAnswer] =
+    useState(false);
 
   return (
-    <div className="mt-6 p-5 border border-[#12345c] rounded-xl bg-[#07142a]">
-      <p className="font-semibold text-green-300 mb-2">Quiz</p>
+    <div className="mt-6 p-5 border border-green-500/20 rounded-2xl bg-black/30 backdrop-blur-xl">
+
+      <p className="font-semibold text-green-300 mb-2">
+        Quiz
+      </p>
+
       <p className="mb-3">{question}</p>
 
       <div className="space-y-2">
@@ -154,8 +204,8 @@ function Quiz({
                     ? "border-green-500 bg-green-900/30"
                     : i === selected
                     ? "border-red-500 bg-red-900/30"
-                    : "border-[#12345c]"
-                  : "border-[#12345c] hover:bg-[#102a4d]"
+                    : "border-green-500/10"
+                  : "border-green-500/10 hover:bg-green-500/10"
               }`}
           >
             {opt}
@@ -173,9 +223,6 @@ function Quiz({
     </div>
   );
 }
-
-/* ---------- CHAPTER CONTENT ---------- */
-
 function Intro() {
   return (
     <Section title="Introduction to Phishing">

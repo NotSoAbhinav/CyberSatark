@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import CyberBackground from "@/components/cyberbackground";
 import { motion } from "framer-motion";
 
 type Verdict =
@@ -392,22 +393,7 @@ export default function URLChecker() {
   return (
     <>
       <Navbar />
-
-      {/* BACKGROUND */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute w-[600px] h-[600px] bg-green-500/10 blur-3xl rounded-full top-[-200px] left-[-200px] animate-pulse"></div>
-
-        <div className="absolute w-[500px] h-[500px] bg-blue-500/10 blur-3xl rounded-full bottom-[-150px] right-[-150px] animate-pulse"></div>
-
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage:
-              "linear-gradient(#00ff99 1px, transparent 1px), linear-gradient(90deg, #00ff99 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
-        />
-      </div>
+      <CyberBackground />
 
       <main className="min-h-screen px-6 py-28 text-white">
         <div className="max-w-6xl mx-auto">
@@ -505,165 +491,6 @@ export default function URLChecker() {
               </div>
             </div>
           </motion.div>
-
-          {/* RESULTS */}
-          {analysis && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mt-10 space-y-8"
-            >
-
-              {/* VERDICT */}
-              <div className="rounded-3xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-8 shadow-2xl shadow-green-500/10">
-
-                <div className="flex flex-col md:flex-row justify-between gap-8">
-
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-4">
-                      Threat Verdict
-                    </p>
-
-                    <div
-                      className={`px-4 py-2 rounded-full inline-block font-bold tracking-[0.2em] text-xs ${
-                        analysis.verdict ===
-                        "DANGEROUS"
-                          ? "bg-red-500/10 border border-red-500/30 text-red-400"
-                          : analysis.verdict ===
-                            "SUSPICIOUS"
-                          ? "bg-yellow-500/10 border border-yellow-500/30 text-yellow-400"
-                          : "bg-green-500/10 border border-green-500/30 text-green-400"
-                      }`}
-                    >
-                      {analysis.verdict}
-                    </div>
-                  </div>
-
-                  <div className="text-left md:text-right">
-                    <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-2">
-                      Risk Score
-                    </p>
-
-                    <h2
-                      className={`text-5xl font-bold ${riskColor?.text}`}
-                    >
-                      {analysis.risk}
-                    </h2>
-
-                    <p className="text-gray-500 mt-2 text-sm">
-                      Confidence:{" "}
-                      {analysis.confidence}%
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-6 w-full h-2 rounded-full bg-white/5 overflow-hidden">
-                  <div
-                    className={`h-full ${riskColor?.bar}`}
-                    style={{
-                      width: `${analysis.risk}%`,
-                    }}
-                  />
-                </div>
-
-                <p className="mt-6 text-gray-300 leading-relaxed">
-                  {analysis.summary}
-                </p>
-              </div>
-
-              {/* DETAILS */}
-              <div className="grid md:grid-cols-5 gap-5">
-                {Object.entries(
-                  analysis.dimensions
-                ).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5"
-                  >
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-3">
-                      {key}
-                    </p>
-
-                    <h3
-                      className={`text-2xl font-bold ${
-                        value >= 70
-                          ? "text-red-400"
-                          : value >= 40
-                          ? "text-yellow-400"
-                          : "text-green-400"
-                      }`}
-                    >
-                      {value}
-                    </h3>
-                  </div>
-                ))}
-              </div>
-
-              {/* FINDINGS */}
-              <div className="space-y-5">
-                {analysis.findings.length ===
-                0 ? (
-                  <div className="rounded-2xl border border-green-500/20 bg-black/30 p-5 text-green-400">
-                    ✓ No major threat indicators
-                    detected.
-                  </div>
-                ) : (
-                  analysis.findings.map(
-                    (finding, i) => (
-                      <div
-                        key={i}
-                        className="rounded-2xl border border-green-500/10 bg-black/30 backdrop-blur-xl p-5"
-                      >
-                        <div className="flex items-center gap-3 mb-3 flex-wrap">
-
-                          <h3 className="text-lg font-semibold text-white">
-                            {finding.title}
-                          </h3>
-
-                          <span className="text-[10px] px-2 py-1 rounded-full uppercase tracking-widest bg-red-500/10 text-red-400">
-                            {finding.severity}
-                          </span>
-                        </div>
-
-                        <p className="text-gray-400 leading-relaxed">
-                          {finding.detail}
-                        </p>
-                      </div>
-                    )
-                  )
-                )}
-              </div>
-
-              {/* IOCS */}
-              <div className="rounded-2xl border border-green-500/20 bg-black/30 p-5">
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-4">
-                  Technical Details
-                </p>
-
-                <div className="space-y-3">
-
-                  <div className="font-mono text-sm text-green-300 bg-black/30 border border-green-500/10 rounded-xl px-4 py-3 break-all">
-                    Domain: {analysis.domain}
-                  </div>
-
-                  <div className="font-mono text-sm text-green-300 bg-black/30 border border-green-500/10 rounded-xl px-4 py-3 break-all">
-                    Protocol: {analysis.protocol}
-                  </div>
-
-                  {analysis.indicators.map(
-                    (ioc, i) => (
-                      <div
-                        key={i}
-                        className="font-mono text-sm text-green-300 bg-black/30 border border-green-500/10 rounded-xl px-4 py-3 break-all"
-                      >
-                        {ioc}
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
         </div>
       </main>
     </>

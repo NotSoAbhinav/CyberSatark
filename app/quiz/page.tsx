@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { quizzes } from "@/data/quizzes";
+import Navbar from "@/components/Navbar";
+import CyberBackground from "@/components/cyberbackground";
 import { motion } from "framer-motion";
 
 type Question = {
@@ -16,220 +18,455 @@ type Quiz = {
   questions: Question[];
 };
 
-function getRandomQuestions(questions: Question[], count: number): Question[]  {
-  const shuffled = [...questions].sort(() => Math.random() - 0.5);
+function getRandomQuestions(
+  questions: Question[],
+  count: number
+): Question[] {
+  const shuffled = [...questions].sort(
+    () => Math.random() - 0.5
+  );
+
   return shuffled.slice(0, count);
 }
 
 export default function QuizPage() {
+  const [quizIndex, setQuizIndex] =
+    useState<number | null>(null);
 
-const [quizIndex, setQuizIndex] = useState<number | null>(null);
-const [questionIndex, setQuestionIndex] = useState(0);
-const [score, setScore] = useState(0);
-const [finished, setFinished] = useState(false);
-const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
+  const [questionIndex, setQuestionIndex] =
+    useState(0);
 
-if (quizIndex === null) {
-return (
-<div className="min-h-screen bg-[#020617] text-white flex flex-col items-center justify-center px-4 pt-28">
+  const [score, setScore] = useState(0);
 
-<h1 className="text-4xl font-bold text-green-400 mb-8">
-Cyber Awareness Quiz
-</h1>
+  const [finished, setFinished] =
+    useState(false);
 
-<div className="w-full max-w-6xl">
+  const [selectedQuestions, setSelectedQuestions] =
+    useState<Question[]>([]);
 
-  {/* First 9 quizzes in 3x3 grid */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+  // QUIZ SELECTION PAGE
+  if (quizIndex === null) {
+    return (
+      <>
+        <Navbar />
+        <CyberBackground />
 
-    {quizzes.slice(0, 9).map((quiz, index) => (
+        <main className="min-h-screen px-6 py-28 text-white">
+          <div className="max-w-6xl mx-auto">
 
-      <motion.div
-        key={index}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.97 }}
-        onClick={() => {
-        setQuizIndex(index);
-        setSelectedQuestions(getRandomQuestions(quizzes[index].questions, 10));
-        }}
-        className="
-          bg-[#020617]/60
-          border border-green-400/30
-          p-8
-          rounded-2xl
-          cursor-pointer
-          backdrop-blur-lg
-          hover:border-green-400
-          hover:bg-green-400/10
-          hover:shadow-green-400/40
-          hover:shadow-xl
-          transition
-          text-center
-        "
-      >
+            {/* HERO */}
+            <motion.div
+              initial={{
+                opacity: 0,
+                y: 35,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              className="text-center mb-16"
+            >
+              <h1 className="text-5xl md:text-6xl font-bold text-green-400">
+                <motion.span
+                  animate={{
+                    textShadow: [
+                      "0 0 6px rgba(34,197,94,0.4)",
+                      "0 0 18px rgba(34,197,94,1)",
+                      "0 0 6px rgba(34,197,94,0.4)",
+                    ],
+                  }}
+                  transition={{
+                    duration: 2.5,
+                    repeat: Infinity,
+                  }}
+                >
+                  Cyber Awareness Quiz
+                </motion.span>
+              </h1>
 
-        <h2 className="text-xl font-semibold text-green-300">
-          {quiz.title}
-        </h2>
+              <p className="mt-6 text-gray-300 max-w-2xl mx-auto text-lg">
+                Test your cybersecurity
+                knowledge through interactive
+                phishing awareness and cyber
+                safety quizzes.
+              </p>
+            </motion.div>
 
-        <p className="text-gray-400 mt-3 text-sm">
-          10 Questions • Awareness Test
-        </p>
+            {/* QUIZ GRID */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
 
-      </motion.div>
+              {quizzes
+                .slice(0, 9)
+                .map((quiz, index) => (
+                  <motion.div
+                    key={index}
+                    whileHover={{
+                      scale: 1.03,
+                      y: -4,
+                    }}
+                    whileTap={{
+                      scale: 0.98,
+                    }}
+                    onClick={() => {
+                      setQuizIndex(index);
 
-    ))}
+                      setSelectedQuestions(
+                        getRandomQuestions(
+                          quizzes[index]
+                            .questions,
+                          10
+                        )
+                      );
+                    }}
+                    className="
+                      backdrop-blur-xl
+                      bg-black/30
+                      border
+                      border-green-500/20
+                      rounded-3xl
+                      overflow-hidden
+                      shadow-2xl
+                      shadow-green-500/10
+                      cursor-pointer
+                      transition
+                      p-8
+                      hover:border-green-400/40
+                    "
+                  >
 
-  </div>
+                    {/* TOP BAR */}
+                    <div className="flex items-center gap-2 mb-6">
+                      <div className="w-3 h-3 rounded-full bg-red-500/70"></div>
 
-  {/* 10th quiz centered below */}
-  <div className="flex justify-center mt-10">
+                      <div className="w-3 h-3 rounded-full bg-yellow-500/70"></div>
 
-    <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.97 }}
-      onClick={() => {
-      setQuizIndex(9);
-      setSelectedQuestions(getRandomQuestions(quizzes[9].questions, 10));
-      }}
-      className="
-        bg-[#020617]/60
-        border border-green-400/30
-        p-8
-        rounded-2xl
-        cursor-pointer
-        backdrop-blur-lg
-        hover:border-green-400
-        hover:bg-green-400/10
-        hover:shadow-green-400/40
-        hover:shadow-xl
-        transition
-        text-center
-        max-w-md
-        w-full
-      "
-    >
+                      <div className="w-3 h-3 rounded-full bg-green-500/70"></div>
+                    </div>
 
-      <h2 className="text-xl font-semibold text-green-300">
-        {quizzes[9].title}
-      </h2>
+                    <h2 className="text-2xl font-semibold text-green-300">
+                      {quiz.title}
+                    </h2>
 
-      <p className="text-gray-400 mt-3 text-sm">
-        Advanced Level • 10 Questions
-      </p>
+                    <p className="text-gray-400 mt-4 text-sm leading-relaxed">
+                      10 Questions • Cyber
+                      Awareness Test
+                    </p>
 
-    </motion.div>
+                    <div className="mt-8 flex items-center gap-3 text-xs text-gray-500 font-mono">
+                      <span className="text-green-400">
+                        ●
+                      </span>
+                      Interactive Simulation
+                    </div>
+                  </motion.div>
+                ))}
+            </div>
 
-  </div>
+            {/* LAST QUIZ */}
+            <div className="flex justify-center mt-10">
 
-</div>
+              <motion.div
+                whileHover={{
+                  scale: 1.03,
+                  y: -4,
+                }}
+                whileTap={{
+                  scale: 0.98,
+                }}
+                onClick={() => {
+                  setQuizIndex(9);
 
-</div>
-);
-}
+                  setSelectedQuestions(
+                    getRandomQuestions(
+                      quizzes[9].questions,
+                      10
+                    )
+                  );
+                }}
+                className="
+                  backdrop-blur-xl
+                  bg-black/30
+                  border
+                  border-green-500/20
+                  rounded-3xl
+                  overflow-hidden
+                  shadow-2xl
+                  shadow-green-500/10
+                  cursor-pointer
+                  transition
+                  p-8
+                  hover:border-green-400/40
+                  max-w-md
+                  w-full
+                "
+              >
 
-const quiz = quizzes[quizIndex];
-const question = selectedQuestions[questionIndex];
+                {/* TOP BAR */}
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="w-3 h-3 rounded-full bg-red-500/70"></div>
 
-function handleAnswer(index: number) {
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/70"></div>
 
-if (index === question.answer) {
-setScore(score + 1);
-}
+                  <div className="w-3 h-3 rounded-full bg-green-500/70"></div>
+                </div>
 
-if (questionIndex + 1 < selectedQuestions.length) {
-setQuestionIndex(questionIndex + 1);
-}
-else {
-setFinished(true);
-}
+                <h2 className="text-2xl font-semibold text-green-300">
+                  {quizzes[9].title}
+                </h2>
 
-}
+                <p className="text-gray-400 mt-4 text-sm leading-relaxed">
+                  Advanced Level • 10 Questions
+                </p>
 
-if (finished) {
+                <div className="mt-8 flex items-center gap-3 text-xs text-gray-500 font-mono">
+                  <span className="text-green-400">
+                    ●
+                  </span>
+                  Advanced Threat Analysis
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
 
-return (
+  const quiz = quizzes[quizIndex];
 
-<div className="min-h-screen bg-[#020617] flex items-center justify-center">
+  const question =
+    selectedQuestions[questionIndex];
 
-<div className="bg-[#020617]/60 border border-green-400/30 p-10 rounded-xl text-center">
+  function handleAnswer(index: number) {
+    if (index === question.answer) {
+      setScore(score + 1);
+    }
 
-<h1 className="text-3xl text-green-400 font-bold">
-Quiz Completed
-</h1>
+    if (
+      questionIndex + 1 <
+      selectedQuestions.length
+    ) {
+      setQuestionIndex(
+        questionIndex + 1
+      );
+    } else {
+      setFinished(true);
+    }
+  }
 
-<p className="text-xl mt-4">
-Score: {score}/10
-</p>
+  // FINISHED PAGE
+  if (finished) {
+    return (
+      <>
+        <Navbar />
+        <CyberBackground />
 
-<button
-className="mt-6 px-6 py-3 border border-green-400 rounded-lg hover:bg-green-400/10"
-onClick={() => {
-setQuizIndex(null);
-setQuestionIndex(0);
-setScore(0);
-setFinished(false);
-}}
->
-Back to quizzes
-</button>
+        <main className="min-h-screen px-6 py-28 flex items-center justify-center text-white">
 
-</div>
+          <motion.div
+            initial={{
+              opacity: 0,
+              scale: 0.9,
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+            }}
+            className="
+              backdrop-blur-xl
+              bg-black/30
+              border
+              border-green-500/20
+              rounded-3xl
+              shadow-2xl
+              shadow-green-500/10
+              p-10
+              text-center
+              max-w-xl
+              w-full
+            "
+          >
 
-</div>
+            <h1 className="text-4xl font-bold text-green-400">
+              Quiz Completed
+            </h1>
 
-);
+            <p className="text-gray-300 mt-6 text-lg">
+              Final Score
+            </p>
 
-}
+            <h2 className="text-6xl font-bold text-white mt-4">
+              {score}/10
+            </h2>
 
-return (
+            <div className="mt-8 w-full h-3 rounded-full bg-white/5 overflow-hidden">
+              <div
+                className={`h-full ${
+                  score >= 8
+                    ? "bg-green-500"
+                    : score >= 5
+                    ? "bg-yellow-500"
+                    : "bg-red-500"
+                }`}
+                style={{
+                  width: `${score * 10}%`,
+                }}
+              />
+            </div>
 
-<div className="min-h-screen bg-[#020617] flex items-center justify-center px-4">
+            <button
+              className="
+                mt-10
+                px-8
+                py-3
+                rounded-xl
+                bg-green-500
+                text-black
+                font-bold
+                shadow-lg
+                shadow-green-500/20
+                hover:shadow-green-400/40
+                transition
+              "
+              onClick={() => {
+                setQuizIndex(null);
+                setQuestionIndex(0);
+                setScore(0);
+                setFinished(false);
+              }}
+            >
+              Back to Quizzes
+            </button>
+          </motion.div>
+        </main>
+      </>
+    );
+  }
 
-<div className="bg-[#020617]/60 border border-green-400/30 p-8 rounded-xl max-w-xl w-full">
+  // QUIZ PAGE
+  return (
+    <>
+      <Navbar />
+      <CyberBackground />
 
-<div className="flex justify-between mb-4 text-green-400">
-<span>Question {questionIndex + 1}/10</span>
-<span>Score: {score}</span>
-</div>
+      <main className="min-h-screen px-6 py-28 flex items-center justify-center text-white">
 
-<div className="w-full bg-gray-800 h-2 rounded mb-6">
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 35,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="
+            backdrop-blur-xl
+            bg-black/30
+            border
+            border-green-500/20
+            rounded-3xl
+            overflow-hidden
+            shadow-2xl
+            shadow-green-500/10
+            max-w-3xl
+            w-full
+          "
+        >
 
-<div
-className="bg-green-400 h-2 rounded"
-style={{
-width: `${((questionIndex + 1) / selectedQuestions.length) * 100}%`
-}}
-/>
+          {/* TOP BAR */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-green-500/10 bg-black/40">
 
-</div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-500/70"></div>
 
-<h2 className="text-xl mb-6">
-{question.question}
-</h2>
+              <div className="w-3 h-3 rounded-full bg-yellow-500/70"></div>
 
-<div className="space-y-4">
+              <div className="w-3 h-3 rounded-full bg-green-500/70"></div>
+            </div>
 
-{question.options.map((option: string, index: number) => (
+            <p className="text-[11px] uppercase tracking-[0.3em] text-green-400 font-semibold">
+              Cyber Awareness Assessment
+            </p>
 
-<button
-key={index}
-onClick={() => handleAnswer(index)}
-className="w-full p-3 border border-green-400/30 rounded-lg hover:bg-green-400/10 text-left"
->
+            <div className="text-[10px] text-gray-600 font-mono">
+              quiz-engine.ts
+            </div>
+          </div>
 
-{option}
+          <div className="p-8">
 
-</button>
+            {/* SCORE BAR */}
+            <div className="flex justify-between mb-4 text-green-400 text-sm font-mono">
+              <span>
+                Question{" "}
+                {questionIndex + 1}/10
+              </span>
 
-))}
+              <span>
+                Score: {score}
+              </span>
+            </div>
 
-</div>
+            <div className="w-full bg-white/5 h-3 rounded-full mb-8 overflow-hidden">
+              <div
+                className="bg-green-400 h-3 rounded-full transition-all duration-500"
+                style={{
+                  width: `${
+                    ((questionIndex + 1) /
+                      selectedQuestions.length) *
+                    100
+                  }%`,
+                }}
+              />
+            </div>
 
-</div>
+            {/* QUESTION */}
+            <h2 className="text-2xl font-semibold text-white leading-relaxed mb-10">
+              {question.question}
+            </h2>
 
-</div>
+            {/* OPTIONS */}
+            <div className="space-y-5">
 
-);
-
+              {question.options.map(
+                (
+                  option: string,
+                  index: number
+                ) => (
+                  <motion.button
+                    key={index}
+                    whileHover={{
+                      scale: 1.01,
+                    }}
+                    whileTap={{
+                      scale: 0.99,
+                    }}
+                    onClick={() =>
+                      handleAnswer(index)
+                    }
+                    className="
+                      w-full
+                      p-5
+                      border
+                      border-green-500/20
+                      rounded-2xl
+                      bg-black/20
+                      text-left
+                      hover:bg-green-500/10
+                      hover:border-green-400/40
+                      transition
+                      text-gray-200
+                    "
+                  >
+                    {option}
+                  </motion.button>
+                )
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </main>
+    </>
+  );
 }

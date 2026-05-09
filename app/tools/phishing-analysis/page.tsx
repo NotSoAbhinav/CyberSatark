@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import CyberBackground from "@/components/cyberbackground";
 import { motion } from "framer-motion";
 
 type Verdict =
@@ -29,6 +30,7 @@ interface AnalysisResult {
     technicalDeception: number;
     socialEngineering: number;
   };
+  securityScore: number;
 }
 
 function getRiskColor(score: number) {
@@ -67,7 +69,9 @@ function analyseMessage(
   let technicalDeception = 0;
   let socialEngineering = 0;
 
-  // URL Detection
+  let securityScore = 100;
+
+  // URL DETECTION
   const urls =
     text.match(
       /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi
@@ -76,6 +80,7 @@ function analyseMessage(
   if (urls.length > 0) {
     technicalDeception += 20;
     risk += 15;
+    securityScore -= 10;
 
     iocs.push(...urls);
 
@@ -83,42 +88,45 @@ function analyseMessage(
       severity: "medium",
       title: "Suspicious URLs Detected",
       detail:
-        "Message contains external links that may redirect users to phishing pages.",
+        "The message contains external URLs that may redirect users to phishing websites.",
     });
   }
 
-  // Shortened URLs
+  // SHORTENED URLS
   const shorteners = [
     "bit.ly",
     "tinyurl",
     "goo.gl",
     "t.co",
+    "is.gd",
   ];
 
   shorteners.forEach((s) => {
     if (content.includes(s)) {
-      risk += 20;
-      technicalDeception += 30;
+      risk += 25;
+      technicalDeception += 35;
+      securityScore -= 15;
 
       threats.push({
         severity: "high",
-        title: "Shortened URL Used",
+        title: "Shortened URL Detected",
         detail:
-          "Attackers commonly hide malicious links using URL shorteners.",
+          "URL shorteners are frequently used to hide malicious destinations.",
       });
     }
   });
 
-  // Urgency tactics
+  // URGENCY TACTICS
   const urgencyWords = [
     "urgent",
     "immediately",
-    "suspended",
     "verify now",
+    "suspended",
     "act now",
+    "warning",
     "limited time",
     "expire",
-    "warning",
+    "final notice",
   ];
 
   urgencyWords.forEach((word) => {
@@ -129,23 +137,26 @@ function analyseMessage(
   });
 
   if (urgency >= 20) {
+    securityScore -= 10;
+
     threats.push({
       severity: "medium",
       title: "Urgency Manipulation",
       detail:
-        "Message attempts to create panic or urgency to pressure quick action.",
+        "The message attempts to pressure the victim into taking immediate action.",
     });
   }
 
-  // Credential harvesting
+  // CREDENTIAL HARVESTING
   const credentialWords = [
     "password",
     "otp",
-    "bank account",
     "credit card",
+    "bank account",
+    "security code",
     "login",
     "verify your account",
-    "security code",
+    "confirm your account",
   ];
 
   credentialWords.forEach((word) => {
@@ -156,25 +167,27 @@ function analyseMessage(
   });
 
   if (credentialHarvesting >= 20) {
+    securityScore -= 20;
+
     threats.push({
       severity: "high",
       title: "Credential Harvesting Attempt",
       detail:
-        "Message requests sensitive authentication or financial information.",
+        "The message requests sensitive authentication or financial information.",
     });
   }
 
-  // Brand impersonation
+  // BRAND IMPERSONATION
   const brands = [
     "paypal",
-    "microsoft",
     "google",
     "amazon",
-    "netflix",
+    "microsoft",
+    "apple",
     "instagram",
     "facebook",
+    "netflix",
     "bank",
-    "apple",
   ];
 
   brands.forEach((brand) => {
@@ -185,22 +198,23 @@ function analyseMessage(
 
   if (impersonation >= 20) {
     risk += 20;
+    securityScore -= 15;
 
     threats.push({
       severity: "high",
       title: "Brand Impersonation",
       detail:
-        "Message appears to impersonate a trusted company or service.",
+        "The message appears to impersonate a trusted brand or online service.",
     });
   }
 
-  // Threatening language
+  // SOCIAL ENGINEERING
   const threatWords = [
     "account locked",
-    "legal action",
-    "your account will be closed",
     "payment failed",
     "unauthorized login",
+    "your account will be closed",
+    "legal action",
   ];
 
   threatWords.forEach((word) => {
@@ -211,22 +225,25 @@ function analyseMessage(
   });
 
   if (socialEngineering >= 20) {
+    securityScore -= 15;
+
     threats.push({
       severity: "medium",
-      title: "Social Engineering Tactics",
+      title: "Social Engineering Indicators",
       detail:
-        "Message uses fear or manipulation to influence the recipient.",
+        "The message uses fear or manipulation to influence the victim.",
     });
   }
 
-  // Crypto scam detection
+  // CRYPTO SCAM
   const cryptoWords = [
     "bitcoin",
     "crypto",
     "wallet",
-    "binance",
     "investment",
-    "trading profit",
+    "binance",
+    "profit",
+    "trading",
   ];
 
   cryptoWords.forEach((word) => {
@@ -237,18 +254,18 @@ function analyseMessage(
         severity: "medium",
         title: "Potential Crypto Scam",
         detail:
-          "Message contains cryptocurrency scam-related terminology.",
+          "The message contains cryptocurrency scam-related terminology.",
       });
     }
   });
 
-  // Giveaway scam
+  // GIVEAWAY SCAM
   const giveawayWords = [
     "won",
-    "free reward",
     "claim prize",
     "gift card",
     "lottery",
+    "free reward",
   ];
 
   giveawayWords.forEach((word) => {
@@ -259,12 +276,17 @@ function analyseMessage(
         severity: "medium",
         title: "Reward Scam Indicators",
         detail:
-          "Message promises rewards or prizes commonly used in scams.",
+          "The message promises rewards or prizes commonly associated with scams.",
       });
     }
   });
 
   risk = Math.min(risk, 100);
+
+  securityScore = Math.max(
+    0,
+    Math.min(securityScore, 100)
+  );
 
   let verdict: Verdict = "LEGITIMATE";
 
@@ -273,14 +295,14 @@ function analyseMessage(
     verdict = "SUSPICIOUS";
 
   const confidence = Math.min(
-    95,
-    50 + threats.length * 8
+    96,
+    55 + threats.length * 6
   );
 
   const summary =
     verdict === "LEGITIMATE"
-      ? "No major phishing indicators were detected in the submitted content."
-      : `The message contains ${threats.length} suspicious indicators associated with phishing, impersonation, or social engineering attacks.`;
+      ? "No major phishing indicators were detected within the submitted content."
+      : `The submitted message contains ${threats.length} suspicious indicators associated with phishing, impersonation, or social engineering attacks.`;
 
   return {
     verdict,
@@ -296,13 +318,15 @@ function analyseMessage(
       technicalDeception,
       socialEngineering,
     },
+    securityScore,
   };
 }
 
 export default function PhishingAnalysis() {
   const [text, setText] = useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
   const [analysis, setAnalysis] =
     useState<AnalysisResult | null>(null);
@@ -334,30 +358,21 @@ export default function PhishingAnalysis() {
   return (
     <>
       <Navbar />
-
-      {/* BACKGROUND */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute w-[600px] h-[600px] bg-green-500/10 blur-3xl rounded-full top-[-200px] left-[-200px] animate-pulse"></div>
-
-        <div className="absolute w-[500px] h-[500px] bg-blue-500/10 blur-3xl rounded-full bottom-[-150px] right-[-150px] animate-pulse"></div>
-
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage:
-              "linear-gradient(#00ff99 1px, transparent 1px), linear-gradient(90deg, #00ff99 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
-        />
-      </div>
+      <CyberBackground />
 
       <main className="min-h-screen px-6 py-28 text-white">
         <div className="max-w-6xl mx-auto">
 
           {/* HERO */}
           <motion.div
-            initial={{ opacity: 0, y: 35 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{
+              opacity: 0,
+              y: 35,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
             className="text-center mb-16"
           >
             <h1 className="text-5xl md:text-6xl font-bold text-green-400">
@@ -379,16 +394,23 @@ export default function PhishingAnalysis() {
             </h1>
 
             <p className="mt-6 text-gray-300 max-w-2xl mx-auto text-lg">
-              Analyze suspicious emails, SMS, or
-              messages using phishing detection and
-              social engineering analysis.
+              Analyze suspicious emails, SMS,
+              WhatsApp messages, and phishing
+              attempts using social engineering
+              detection.
             </p>
           </motion.div>
 
           {/* INPUT PANEL */}
           <motion.div
-            initial={{ opacity: 0, y: 35 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{
+              opacity: 0,
+              y: 35,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
             className="backdrop-blur-xl bg-black/30 border border-green-500/20 rounded-3xl overflow-hidden shadow-2xl shadow-green-500/10"
           >
 
@@ -434,8 +456,12 @@ export default function PhishingAnalysis() {
                 </div>
 
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{
+                    scale: 1.02,
+                  }}
+                  whileTap={{
+                    scale: 0.98,
+                  }}
                   onClick={runAnalysis}
                   disabled={loading}
                   className="px-8 py-3 rounded-xl bg-green-500 text-black font-bold shadow-lg shadow-green-500/20 hover:shadow-green-400/40 transition disabled:opacity-40"
@@ -494,7 +520,10 @@ export default function PhishingAnalysis() {
 
                     <p className="text-gray-500 mt-2 text-sm">
                       Confidence:{" "}
-                      {analysis.confidence}%
+                      {
+                        analysis.confidence
+                      }
+                      %
                     </p>
                   </div>
                 </div>
@@ -511,6 +540,48 @@ export default function PhishingAnalysis() {
                 <p className="mt-6 text-gray-300 leading-relaxed">
                   {analysis.summary}
                 </p>
+              </div>
+
+              {/* METRICS */}
+              <div className="grid md:grid-cols-3 gap-5">
+
+                <div className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">
+                    Security Score
+                  </p>
+
+                  <h3 className="text-3xl font-bold text-green-400">
+                    {
+                      analysis.securityScore
+                    }
+                  </h3>
+                </div>
+
+                <div className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">
+                    Credential Risk
+                  </p>
+
+                  <h3 className="text-3xl font-bold text-yellow-400">
+                    {
+                      analysis.dimensions
+                        .credentialHarvesting
+                    }
+                  </h3>
+                </div>
+
+                <div className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">
+                    Technical Risk
+                  </p>
+
+                  <h3 className="text-3xl font-bold text-red-400">
+                    {
+                      analysis.dimensions
+                        .technicalDeception
+                    }
+                  </h3>
+                </div>
               </div>
 
               {/* DIMENSIONS */}
@@ -546,8 +617,8 @@ export default function PhishingAnalysis() {
                 {analysis.threats.length ===
                 0 ? (
                   <div className="rounded-2xl border border-green-500/20 bg-black/30 p-5 text-green-400">
-                    ✓ No major phishing indicators
-                    detected.
+                    ✓ No major phishing
+                    indicators detected.
                   </div>
                 ) : (
                   analysis.threats.map(
@@ -563,7 +634,9 @@ export default function PhishingAnalysis() {
                           </h3>
 
                           <span className="text-[10px] px-2 py-1 rounded-full uppercase tracking-widest bg-red-500/10 text-red-400">
-                            {threat.severity}
+                            {
+                              threat.severity
+                            }
                           </span>
                         </div>
 
@@ -577,7 +650,8 @@ export default function PhishingAnalysis() {
               </div>
 
               {/* IOCS */}
-              {analysis.iocs.length > 0 && (
+              {analysis.iocs.length >
+                0 && (
                 <div className="rounded-2xl border border-green-500/20 bg-black/30 p-5">
                   <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-4">
                     Indicators of Compromise

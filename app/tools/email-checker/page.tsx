@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
+import CyberBackground from "@/components/cyberbackground";
 import { motion } from "framer-motion";
 
 type Verdict =
@@ -31,10 +32,20 @@ interface AnalysisResult {
   replyToDomain: string | null;
   returnPathDomain: string | null;
   hopCount: number;
+  securityScore: number;
+  spoofingRisk: number;
+  routingRisk: number;
 }
 
-function extractHeader(header: string, key: string) {
-  const regex = new RegExp(`^${key}:(.*)$`, "gim");
+function extractHeader(
+  header: string,
+  key: string
+) {
+  const regex = new RegExp(
+    `^${key}:(.*)$`,
+    "gim"
+  );
+
   const match = regex.exec(header);
 
   return match ? match[1].trim() : null;
@@ -47,7 +58,9 @@ function extractDomain(value: string | null) {
     /[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.[a-zA-Z]+)/i
   );
 
-  return emailMatch ? emailMatch[1].toLowerCase() : null;
+  return emailMatch
+    ? emailMatch[1].toLowerCase()
+    : null;
 }
 
 function getAuthStatus(
@@ -68,10 +81,16 @@ function getAuthStatus(
   return "unknown";
 }
 
-function analyseHeader(header: string): AnalysisResult {
+function analyseHeader(
+  header: string
+): AnalysisResult {
   let risk = 0;
 
   const findings: Finding[] = [];
+
+  let spoofingRisk = 0;
+  let routingRisk = 0;
+  let securityScore = 100;
 
   const authResults = extractHeader(
     header,
@@ -84,19 +103,25 @@ function analyseHeader(header: string): AnalysisResult {
 
   const dmarc = getAuthStatus(authResults, "dmarc");
 
+  // SPF
   if (spf === "fail") {
     risk += 30;
+    spoofingRisk += 35;
+    securityScore -= 20;
 
     findings.push({
       severity: "high",
       title: "SPF Authentication Failed",
       detail:
-        "The sending mail server failed SPF validation.",
+        "The sender server failed SPF validation checks.",
     });
   }
 
+  // DKIM
   if (dkim === "fail") {
     risk += 25;
+    spoofingRisk += 25;
+    securityScore -= 15;
 
     findings.push({
       severity: "high",
@@ -106,18 +131,24 @@ function analyseHeader(header: string): AnalysisResult {
     });
   }
 
+  // DMARC
   if (dmarc === "fail") {
-    risk += 30;
+    risk += 35;
+    spoofingRisk += 40;
+    securityScore -= 25;
 
     findings.push({
       severity: "critical",
-      title: "DMARC Policy Failed",
+      title: "DMARC Policy Failure",
       detail:
-        "DMARC validation failed indicating possible spoofing.",
+        "DMARC validation failed indicating possible domain spoofing.",
     });
   }
 
-  const fromHeader = extractHeader(header, "From");
+  const fromHeader = extractHeader(
+    header,
+    "From"
+  );
 
   const replyToHeader = extractHeader(
     header,
@@ -129,7 +160,8 @@ function analyseHeader(header: string): AnalysisResult {
     "Return-Path"
   );
 
-  const fromDomain = extractDomain(fromHeader);
+  const fromDomain =
+    extractDomain(fromHeader);
 
   const replyToDomain =
     extractDomain(replyToHeader);
@@ -137,41 +169,46 @@ function analyseHeader(header: string): AnalysisResult {
   const returnPathDomain =
     extractDomain(returnPathHeader);
 
+  // Reply-To mismatch
   if (
     replyToDomain &&
     fromDomain &&
     replyToDomain !== fromDomain
   ) {
     risk += 20;
+    spoofingRisk += 25;
 
     findings.push({
       severity: "high",
-      title: "Reply-To Domain Mismatch",
+      title: "Reply-To Mismatch",
       detail:
-        "Reply-To domain differs from sender domain.",
+        "Reply-To domain differs from the sender domain.",
     });
   }
 
+  // Return-Path mismatch
   if (
     returnPathDomain &&
     fromDomain &&
     returnPathDomain !== fromDomain
   ) {
     risk += 15;
+    spoofingRisk += 20;
 
     findings.push({
       severity: "medium",
       title: "Return-Path Mismatch",
       detail:
-        "Return-Path domain differs from sender domain.",
+        "Return-Path domain differs from the sender domain.",
     });
   }
 
+  // Free providers
   const freeProviders = [
     "gmail.com",
     "yahoo.com",
-    "outlook.com",
     "hotmail.com",
+    "outlook.com",
   ];
 
   if (
@@ -179,64 +216,106 @@ function analyseHeader(header: string): AnalysisResult {
     freeProviders.includes(fromDomain)
   ) {
     risk += 10;
+    spoofingRisk += 10;
 
     findings.push({
       severity: "medium",
-      title: "Free Email Provider Used",
+      title: "Free Email Provider",
       detail:
-        "Sender uses a free email provider often abused in phishing.",
+        "Free email providers are frequently abused in phishing campaigns.",
     });
   }
 
+  // Received hops
   const receivedHeaders =
     header.match(/^Received:.*$/gim) || [];
 
   const hopCount = receivedHeaders.length;
 
   if (hopCount >= 8) {
-    risk += 10;
+    risk += 12;
+    routingRisk += 25;
 
     findings.push({
       severity: "low",
-      title: "Unusual Routing Chain",
+      title: "Unusual Routing Path",
       detail:
-        "Email passed through many relay servers.",
+        "Email passed through an unusually high number of mail servers.",
     });
   }
 
+  // Social engineering words
+  const suspiciousWords = [
+    "urgent",
+    "verify",
+    "suspended",
+    "immediately",
+    "warning",
+    "confirm",
+    "security alert",
+    "password",
+    "login",
+  ];
+
+  suspiciousWords.forEach((word) => {
+    if (
+      header.toLowerCase().includes(word)
+    ) {
+      risk += 5;
+    }
+  });
+
+  if (risk >= 20) {
+    findings.push({
+      severity: "medium",
+      title: "Social Engineering Indicators",
+      detail:
+        "Header contains language patterns commonly used in phishing attacks.",
+    });
+  }
+
+  // Missing authentication
   if (
-    header.toLowerCase().includes("urgent") ||
-    header.toLowerCase().includes("verify") ||
-    header.toLowerCase().includes("suspended")
+    spf === "unknown" &&
+    dkim === "unknown" &&
+    dmarc === "unknown"
   ) {
-    risk += 15;
+    risk += 20;
+    spoofingRisk += 20;
 
     findings.push({
       severity: "medium",
-      title: "Social Engineering Language",
+      title: "Missing Authentication Records",
       detail:
-        "Header contains words commonly used in phishing attacks.",
+        "No authentication results were found in the email headers.",
     });
   }
 
+  // Final calculations
   risk = Math.min(risk, 100);
+
+  securityScore = Math.max(
+    0,
+    Math.min(securityScore, 100)
+  );
 
   let verdict: Verdict = "LEGITIMATE";
 
-  if (risk >= 80) verdict = "PHISHING";
-  else if (risk >= 60) verdict = "SPOOFED";
-  else if (risk >= 35)
+  if (risk >= 75) verdict = "PHISHING";
+  else if (risk >= 55)
+    verdict = "SPOOFED";
+  else if (risk >= 30)
     verdict = "SUSPICIOUS";
 
   const confidence = Math.min(
-    95,
-    50 + findings.length * 10
+    96,
+    55 + findings.length * 7
   );
 
   const summary =
     verdict === "LEGITIMATE"
-      ? "No major spoofing or phishing indicators were detected."
-      : `This email shows ${findings.length} suspicious indicators associated with phishing or spoofing attempts.`;
+      ? "No major phishing or spoofing indicators were detected within the submitted email headers."
+      : `This email contains ${findings.length} suspicious indicators associated with spoofing, phishing, or email manipulation attempts.`;
 
   return {
     verdict,
@@ -253,6 +332,9 @@ function analyseHeader(header: string): AnalysisResult {
     replyToDomain,
     returnPathDomain,
     hopCount,
+    securityScore,
+    spoofingRisk,
+    routingRisk,
   };
 }
 
@@ -276,9 +358,11 @@ function getRiskColor(score: number) {
 }
 
 export default function EmailChecker() {
-  const [header, setHeader] = useState("");
+  const [header, setHeader] =
+    useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
   const [analysis, setAnalysis] =
     useState<AnalysisResult | null>(null);
@@ -310,30 +394,21 @@ export default function EmailChecker() {
   return (
     <>
       <Navbar />
-
-      {/* BACKGROUND */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute w-[600px] h-[600px] bg-green-500/10 blur-3xl rounded-full top-[-200px] left-[-200px] animate-pulse"></div>
-
-        <div className="absolute w-[500px] h-[500px] bg-blue-500/10 blur-3xl rounded-full bottom-[-150px] right-[-150px] animate-pulse"></div>
-
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage:
-              "linear-gradient(#00ff99 1px, transparent 1px), linear-gradient(90deg, #00ff99 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
-        />
-      </div>
+      <CyberBackground />
 
       <main className="min-h-screen px-6 py-28 text-white">
         <div className="max-w-6xl mx-auto">
 
           {/* HERO */}
           <motion.div
-            initial={{ opacity: 0, y: 35 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{
+              opacity: 0,
+              y: 35,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
             className="text-center mb-16"
           >
             <h1 className="text-5xl md:text-6xl font-bold text-green-400">
@@ -355,15 +430,23 @@ export default function EmailChecker() {
             </h1>
 
             <p className="mt-6 text-gray-300 max-w-2xl mx-auto text-lg">
-              Analyze suspicious email headers using
-              phishing detection and spoofing analysis.
+              Analyze suspicious email headers
+              using phishing detection,
+              spoofing analysis, and routing
+              intelligence.
             </p>
           </motion.div>
 
           {/* INPUT */}
           <motion.div
-            initial={{ opacity: 0, y: 35 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{
+              opacity: 0,
+              y: 35,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
             className="backdrop-blur-xl bg-black/30 border border-green-500/20 rounded-3xl overflow-hidden shadow-2xl shadow-green-500/10"
           >
 
@@ -387,7 +470,7 @@ export default function EmailChecker() {
               </div>
             </div>
 
-            {/* TEXTAREA */}
+            {/* INPUT AREA */}
             <div className="p-5">
               <textarea
                 rows={8}
@@ -405,25 +488,29 @@ export default function EmailChecker() {
                   <span className="text-green-400">
                     ●
                   </span>
-                  AI Threat Detection Active
+                  Threat Intelligence Active
                 </div>
 
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{
+                    scale: 1.02,
+                  }}
+                  whileTap={{
+                    scale: 0.98,
+                  }}
                   onClick={runAnalysis}
                   disabled={loading}
                   className="px-8 py-3 rounded-xl bg-green-500 text-black font-bold shadow-lg shadow-green-500/20 hover:shadow-green-400/40 transition disabled:opacity-40"
                 >
                   {loading
                     ? "Analysing..."
-                    : "Run Forensic Analysis"}
+                    : "Run Analysis"}
                 </motion.button>
               </div>
             </div>
           </motion.div>
 
-          {/* RESULT */}
+          {/* RESULTS */}
           {analysis && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -441,7 +528,20 @@ export default function EmailChecker() {
                       Threat Verdict
                     </p>
 
-                    <div className="px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 inline-block text-green-400 font-bold tracking-[0.2em] text-xs">
+                    <div
+                      className={`px-4 py-2 rounded-full inline-block font-bold tracking-[0.2em] text-xs ${
+                        analysis.verdict ===
+                        "PHISHING"
+                          ? "bg-red-500/10 border border-red-500/30 text-red-400"
+                          : analysis.verdict ===
+                            "SPOOFED"
+                          ? "bg-orange-500/10 border border-orange-500/30 text-orange-400"
+                          : analysis.verdict ===
+                            "SUSPICIOUS"
+                          ? "bg-yellow-500/10 border border-yellow-500/30 text-yellow-400"
+                          : "bg-green-500/10 border border-green-500/30 text-green-400"
+                      }`}
+                    >
                       {analysis.verdict}
                     </div>
                   </div>
@@ -459,7 +559,10 @@ export default function EmailChecker() {
 
                     <p className="text-gray-500 mt-2 text-sm">
                       Confidence:{" "}
-                      {analysis.confidence}%
+                      {
+                        analysis.confidence
+                      }
+                      %
                     </p>
                   </div>
                 </div>
@@ -478,32 +581,72 @@ export default function EmailChecker() {
                 </p>
               </div>
 
+              {/* METRICS */}
+              <div className="grid md:grid-cols-3 gap-5">
+
+                <div className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">
+                    Security Score
+                  </p>
+
+                  <h3 className="text-3xl font-bold text-green-400">
+                    {
+                      analysis.securityScore
+                    }
+                  </h3>
+                </div>
+
+                <div className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">
+                    Spoofing Risk
+                  </p>
+
+                  <h3 className="text-3xl font-bold text-yellow-400">
+                    {
+                      analysis.spoofingRisk
+                    }
+                  </h3>
+                </div>
+
+                <div className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">
+                    Routing Risk
+                  </p>
+
+                  <h3 className="text-3xl font-bold text-red-400">
+                    {
+                      analysis.routingRisk
+                    }
+                  </h3>
+                </div>
+              </div>
+
               {/* AUTH */}
               <div className="grid md:grid-cols-3 gap-5">
-                {Object.entries(analysis.auth).map(
-                  ([key, value]) => (
-                    <div
-                      key={key}
-                      className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5"
-                    >
-                      <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">
-                        {key}
-                      </p>
+                {Object.entries(
+                  analysis.auth
+                ).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="rounded-2xl border border-green-500/20 bg-black/30 backdrop-blur-xl p-5"
+                  >
+                    <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">
+                      {key}
+                    </p>
 
-                      <h3
-                        className={`text-2xl font-bold ${
-                          value === "pass"
-                            ? "text-green-400"
-                            : value === "fail"
-                            ? "text-red-400"
-                            : "text-yellow-400"
-                        }`}
-                      >
-                        {value}
-                      </h3>
-                    </div>
-                  )
-                )}
+                    <h3
+                      className={`text-2xl font-bold ${
+                        value === "pass"
+                          ? "text-green-400"
+                          : value === "fail"
+                          ? "text-red-400"
+                          : "text-yellow-400"
+                      }`}
+                    >
+                      {value}
+                    </h3>
+                  </div>
+                ))}
               </div>
 
               {/* DETAILS */}
@@ -514,8 +657,10 @@ export default function EmailChecker() {
                     From Domain
                   </p>
 
-                  <p className="text-green-300 font-mono">
-                    {analysis.fromDomain}
+                  <p className="text-green-300 font-mono break-all">
+                    {
+                      analysis.fromDomain
+                    }
                   </p>
                 </div>
 
@@ -524,7 +669,7 @@ export default function EmailChecker() {
                     Reply-To
                   </p>
 
-                  <p className="text-green-300 font-mono">
+                  <p className="text-green-300 font-mono break-all">
                     {analysis.replyToDomain ||
                       "Not Found"}
                   </p>
@@ -543,27 +688,37 @@ export default function EmailChecker() {
 
               {/* FINDINGS */}
               <div className="space-y-5">
-                {analysis.findings.map(
-                  (finding, i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl border border-green-500/10 bg-black/30 backdrop-blur-xl p-5"
-                    >
-                      <div className="flex items-center gap-3 mb-3 flex-wrap">
+                {analysis.findings.length ===
+                0 ? (
+                  <div className="rounded-2xl border border-green-500/20 bg-black/30 p-5 text-green-400">
+                    ✓ No major threat
+                    indicators detected.
+                  </div>
+                ) : (
+                  analysis.findings.map(
+                    (finding, i) => (
+                      <div
+                        key={i}
+                        className="rounded-2xl border border-green-500/10 bg-black/30 backdrop-blur-xl p-5"
+                      >
+                        <div className="flex items-center gap-3 mb-3 flex-wrap">
 
-                        <h3 className="text-lg font-semibold text-white">
-                          {finding.title}
-                        </h3>
+                          <h3 className="text-lg font-semibold text-white">
+                            {finding.title}
+                          </h3>
 
-                        <span className="text-[10px] px-2 py-1 rounded-full uppercase tracking-widest bg-red-500/10 text-red-400">
-                          {finding.severity}
-                        </span>
+                          <span className="text-[10px] px-2 py-1 rounded-full uppercase tracking-widest bg-red-500/10 text-red-400">
+                            {
+                              finding.severity
+                            }
+                          </span>
+                        </div>
+
+                        <p className="text-gray-400 leading-relaxed">
+                          {finding.detail}
+                        </p>
                       </div>
-
-                      <p className="text-gray-400 leading-relaxed">
-                        {finding.detail}
-                      </p>
-                    </div>
+                    )
                   )
                 )}
               </div>
