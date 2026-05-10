@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import Navbar from "@/components/Navbar";
 import CyberBackground from "@/components/cyberbackground";
 
 import {
@@ -44,9 +45,10 @@ export default function PasswordAnalyzerPage() {
 
   return (
   <>
+    <Navbar />
     <CyberBackground />
 
-    <main className="min-h-screen px-6 py-28 text-white">
+    <main className="min-h-screen px-6 py-32 text-white">
       <div className="max-w-4xl mx-auto">
 
         {/* HERO */}
