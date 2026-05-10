@@ -418,7 +418,7 @@ export default function URLChecker() {
                   repeat: Infinity,
                 }}
               >
-                URL Threat Scanner
+                URL Analyzer
               </motion.span>
             </h1>
 
