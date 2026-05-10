@@ -11,6 +11,7 @@ import {
   Link2,
   BrainCircuit,
   ArrowRight,
+  BugOff,
 } from "lucide-react";
 
 const tools = [
@@ -40,13 +41,21 @@ const tools = [
     icon: BrainCircuit,
     status: "Active",
   },
+  {
+    title: "Password Analyzer",
+    description:
+      "Analyze password complexity, detect weak patterns, and improve credential security.",
+    href: "/tools/password-analyzer",
+    icon: ShieldCheck,
+    status: "Active",
+  },
 
   {
     title: "Threat Intelligence",
     description:
       "Advanced threat intelligence and malware analysis modules coming soon.",
     href: "#",
-    icon: ShieldCheck,
+    icon: BugOff,
     status: "Coming Soon",
   },
 ];
