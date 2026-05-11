@@ -7,8 +7,8 @@ import {
 /* CONFIGURATION */
 /* -------------------------------- */
 
-const MIN_DELAY = 1000 * 30 * 1; // 30 seconds
-const MAX_DELAY = 1000 * 60 * 1; // 1 min
+const MIN_DELAY = 1000 * 60 * 1; // 1 minute
+const MAX_DELAY = 1000 * 60 * 5; // 5 minutes
 
 const MAX_POPUPS_PER_SESSION = 3;
 
