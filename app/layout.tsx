@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
 import BrandLogo from "@/components/BrandLogo";
 import HomeButton from "@/components/HomeButton";
+import PhishingSimulation from "@/components/simulation/PhishingSimulation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <BrandLogo />
         <HomeButton />   {/* ← ADD THIS LINE */}
+        <PhishingSimulation />
         {children}
         <ThemeToggle />
       </body>
