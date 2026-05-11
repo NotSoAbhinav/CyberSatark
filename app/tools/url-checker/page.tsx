@@ -491,6 +491,106 @@ export default function URLChecker() {
               </div>
             </div>
           </motion.div>
+
+          {/* RESULTS */}
+          {analysis && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-10 backdrop-blur-xl bg-black/30 border border-green-500/20 rounded-3xl p-6 shadow-2xl shadow-green-500/10"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-green-400">
+                    Scan Result
+                  </h2>
+
+                  <p className="text-gray-400 text-sm mt-1">
+                    {analysis.summary}
+                  </p>
+                </div>
+
+                <div
+                  className={`text-2xl font-bold ${riskColor?.text}`}
+                >
+                  {analysis.verdict}
+                </div>
+              </div>
+
+              {/* RISK BAR */}
+              <div className="mb-6">
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Risk Score</span>
+                  <span>{analysis.risk}%</span>
+                </div>
+
+                <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${riskColor?.bar}`}
+                    style={{
+                      width: `${analysis.risk}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* INFO */}
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-black/40 rounded-2xl p-4 border border-green-500/10">
+                  <p className="text-xs text-gray-500 mb-1">
+                    DOMAIN
+                  </p>
+
+                  <p className="font-mono text-green-300">
+                    {analysis.domain}
+                  </p>
+                </div>
+
+                <div className="bg-black/40 rounded-2xl p-4 border border-green-500/10">
+                  <p className="text-xs text-gray-500 mb-1">
+                    PROTOCOL
+                  </p>
+
+                  <p className="font-mono text-green-300">
+                    {analysis.protocol}
+                  </p>
+                </div>
+              </div>
+
+              {/* FINDINGS */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-green-400">
+                  Findings
+                </h3>
+
+                <div className="space-y-3">
+                  {analysis.findings.map(
+                    (finding, index) => (
+                      <div
+                        key={index}
+                        className="bg-black/40 border border-green-500/10 rounded-2xl p-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">
+                            {finding.title}
+                          </h4>
+
+                          <span className="text-xs uppercase text-red-400">
+                            {finding.severity}
+                          </span>
+                        </div>
+
+                        <p className="text-sm text-gray-400 mt-2">
+                          {finding.detail}
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
         </div>
       </main>
     </>
