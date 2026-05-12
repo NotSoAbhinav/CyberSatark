@@ -63,7 +63,7 @@ export const popupData: PhishingPopup[] = [
       "Emotional manipulation",
     ],
 
-    source: "Entertainment Offer",
+    source: "Netflix",
   },
 
   {
@@ -123,7 +123,7 @@ export const popupData: PhishingPopup[] = [
       "Trust exploitation",
     ],
 
-    source: "Courier Service",
+    source: "System",
   },
 
   {
@@ -213,7 +213,7 @@ export const popupData: PhishingPopup[] = [
       "Pressure tactics",
     ],
 
-    source: "System Security",
+    source: "System",
   },
 
   {
@@ -243,7 +243,7 @@ export const popupData: PhishingPopup[] = [
       "Urgency",
     ],
 
-    source: "Banking Service",
+    source: "Bank",
   },
 
   {
@@ -273,7 +273,7 @@ export const popupData: PhishingPopup[] = [
       "Curiosity",
     ],
 
-    source: "Recruitment Portal",
+    source: "CyberSatark",
   },
 
   {
@@ -303,7 +303,7 @@ export const popupData: PhishingPopup[] = [
       "Credential phishing",
     ],
 
-    source: "Authentication System",
+    source: "Google",
   },
 
   {
@@ -333,155 +333,156 @@ export const popupData: PhishingPopup[] = [
       "Social engineering",
     ],
 
-    source: "Telegram",
+    source: "WhatsApp",
   },
+
   {
-  id: 11,
+    id: 11,
 
-  type: "modal",
+    type: "modal",
 
-  title: "CyberSatark Premium Access",
+    title: "CyberSatark Premium Access",
 
-  message:
-    "Congratulations! You have been selected for free CyberSatark Premium membership for 1 year.",
+    message:
+      "Congratulations! You have been selected for free CyberSatark Premium membership for 1 year.",
 
-  actionText: "Activate Access",
+    actionText: "Activate Access",
 
-  cancelText: "Later",
+    cancelText: "Later",
 
-  dangerLevel: "medium",
+    dangerLevel: "medium",
 
-  revealTitle: "⚠ Reward-Based Phishing Detected",
+    revealTitle: "⚠ Reward-Based Phishing Detected",
 
-  revealMessage:
-    "Attackers frequently use fake rewards and premium upgrades to manipulate users into clicking malicious links.",
+    revealMessage:
+      "Attackers frequently use fake rewards and premium upgrades to manipulate users into clicking malicious links.",
 
-  tactics: [
-    "Fake rewards",
-    "Trust exploitation",
-    "Excitement manipulation",
-  ],
+    tactics: [
+      "Fake rewards",
+      "Trust exploitation",
+      "Excitement manipulation",
+    ],
 
-  source: "CyberSatark",
-},
+    source: "CyberSatark",
+  },
 
-{
-  id: 12,
+  {
+    id: 12,
 
-  type: "notification",
+    type: "notification",
 
-  title: "CyberSatark Threat Alert",
+    title: "CyberSatark Threat Alert",
 
-  message:
-    "Critical phishing attack detected on your account. Immediate verification required.",
+    message:
+      "Critical phishing attack detected on your account. Immediate verification required.",
 
-  actionText: "Secure Account",
+    actionText: "Secure Account",
 
-  cancelText: "Dismiss",
+    cancelText: "Dismiss",
 
-  dangerLevel: "high",
+    dangerLevel: "high",
 
-  revealTitle: "⚠ Fake Security Notification",
+    revealTitle: "⚠ Fake Security Notification",
 
-  revealMessage:
-    "Cyber attackers often imitate security alerts to create panic and steal credentials.",
+    revealMessage:
+      "Cyber attackers often imitate security alerts to create panic and steal credentials.",
 
-  tactics: [
-    "Fear tactics",
-    "Urgency",
-    "Security impersonation",
-  ],
+    tactics: [
+      "Fear tactics",
+      "Urgency",
+      "Security impersonation",
+    ],
 
-  source: "CyberSatark Security",
-},
+    source: "CyberSatark",
+  },
 
-{
-  id: 13,
+  {
+    id: 13,
 
-  type: "toast",
+    type: "toast",
 
-  title: "Exclusive Beta Access",
+    title: "Exclusive Beta Access",
 
-  message:
-    "You were selected to test CyberSatark AI Threat Intelligence before public release.",
+    message:
+      "You were selected to test CyberSatark AI Threat Intelligence before public release.",
 
-  actionText: "Join Beta",
+    actionText: "Join Beta",
 
-  cancelText: "Close",
+    cancelText: "Close",
 
-  dangerLevel: "medium",
+    dangerLevel: "medium",
 
-  revealTitle: "⚠ Curiosity-Based Phishing Attempt",
+    revealTitle: "⚠ Curiosity-Based Phishing Attempt",
 
-  revealMessage:
-    "Exclusive invitations and beta programs are commonly abused in phishing campaigns.",
+    revealMessage:
+      "Exclusive invitations and beta programs are commonly abused in phishing campaigns.",
 
-  tactics: [
-    "Curiosity bait",
-    "Exclusive access lure",
-    "Social engineering",
-  ],
+    tactics: [
+      "Curiosity bait",
+      "Exclusive access lure",
+      "Social engineering",
+    ],
 
-  source: "CyberSatark Labs",
-},
+    source: "CyberSatark",
+  },
 
-{
-  id: 14,
+  {
+    id: 14,
 
-  type: "floating-chat",
+    type: "floating-chat",
 
-  title: "CyberSatark Team Message",
+    title: "CyberSatark Team Message",
 
-  message:
-    "Your phishing awareness score ranked in the top 1%. Claim your reward badge now.",
+    message:
+      "Your phishing awareness score ranked in the top 1%. Claim your reward badge now.",
 
-  actionText: "Claim Badge",
+    actionText: "Claim Badge",
 
-  cancelText: "Ignore",
+    cancelText: "Ignore",
 
-  dangerLevel: "medium",
+    dangerLevel: "medium",
 
-  revealTitle: "⚠ Gamified Phishing Simulation",
+    revealTitle: "⚠ Gamified Phishing Simulation",
 
-  revealMessage:
-    "Attackers often use fake achievements and rankings to manipulate user behavior.",
+    revealMessage:
+      "Attackers often use fake achievements and rankings to manipulate user behavior.",
 
-  tactics: [
-    "Gamification",
-    "Reward manipulation",
-    "Trust exploitation",
-  ],
+    tactics: [
+      "Gamification",
+      "Reward manipulation",
+      "Trust exploitation",
+    ],
 
-  source: "CyberSatark",
-},
+    source: "CyberSatark",
+  },
 
-{
-  id: 15,
+  {
+    id: 15,
 
-  type: "top-banner",
+    type: "top-banner",
 
-  title: "CyberSatark Giveaway",
+    title: "CyberSatark Giveaway",
 
-  message:
-    "Limited-time cybersecurity toolkit giveaway ending in 5 minutes.",
+    message:
+      "Limited-time cybersecurity toolkit giveaway ending in 10 seconds. Hurry!",
 
-  actionText: "Participate",
+    actionText: "Participate",
 
-  cancelText: "Dismiss",
+    cancelText: "Dismiss",
 
-  dangerLevel: "high",
+    dangerLevel: "high",
 
-  revealTitle: "⚠ Urgency-Based Phishing Attempt",
+    revealTitle: "⚠ Urgency-Based Phishing Attempt",
 
-  revealMessage:
-    "Time pressure is one of the most effective phishing techniques used to bypass critical thinking.",
+    revealMessage:
+      "Time pressure is one of the most effective phishing techniques used to bypass critical thinking.",
 
-  tactics: [
-    "Urgency",
-    "Fake giveaway",
-    "Pressure tactics",
-  ],
+    tactics: [
+      "Urgency",
+      "Fake giveaway",
+      "Pressure tactics",
+    ],
 
-  source: "CyberSatark Events",
-},
+    source: "CyberSatark",
+  },
 ];
